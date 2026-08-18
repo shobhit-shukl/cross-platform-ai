@@ -34,6 +34,26 @@ export interface PublishResult {
   platformPostId: string;
 }
 
+/** A single post/video as returned by the platform's own API — not what CrossPost AI created, what actually exists on the account. */
+export interface ExternalPost {
+  platformPostId: string;
+  title: string;
+  description?: string;
+  thumbnailUrl?: string;
+  privacyStatus: PrivacyStatus;
+  publishedAt: string;
+  /** Undefined when the platform doesn't expose a duration (e.g. live streams). */
+  durationSeconds?: number;
+  viewCount?: number;
+  /** False when the platform disallows third-party embedding for this specific post. */
+  isEmbeddable: boolean;
+}
+
+export interface ListPostsResult {
+  items: ExternalPost[];
+  nextPageToken?: string;
+}
+
 /**
  * Common contract every platform integration implements. Adding Instagram or Facebook
  * later means implementing this interface and registering it in ProviderRegistry —
@@ -59,6 +79,9 @@ export interface SocialProvider {
 
   /** Uploads/publishes a video and returns the platform's id for the created post. */
   publish(accessToken: string, input: PublishInput): Promise<PublishResult>;
+
+  /** Lists posts already on the connected account, newest first. */
+  listPosts(accessToken: string, opts: { pageToken?: string; limit?: number }): Promise<ListPostsResult>;
 }
 
 export const SOCIAL_PROVIDER_REGISTRY = 'SOCIAL_PROVIDER_REGISTRY';

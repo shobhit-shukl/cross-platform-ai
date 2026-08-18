@@ -4,7 +4,10 @@ import { Platform } from '@prisma/client';
 import { createReadStream } from 'fs';
 import {
   ExternalAccount,
+  ExternalPost,
+  ListPostsResult,
   OAuthTokens,
+  PrivacyStatus,
   PublishInput,
   PublishResult,
   SocialProvider,
@@ -23,6 +26,11 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_REVOKE_URL = 'https://oauth2.googleapis.com/revoke';
 const YOUTUBE_CHANNELS_URL = 'https://www.googleapis.com/youtube/v3/channels';
 const YOUTUBE_UPLOAD_URL = 'https://www.googleapis.com/upload/youtube/v3/videos';
+const YOUTUBE_PLAYLIST_ITEMS_URL = 'https://www.googleapis.com/youtube/v3/playlistItems';
+const YOUTUBE_VIDEOS_URL = 'https://www.googleapis.com/youtube/v3/videos';
+
+const DEFAULT_PAGE_SIZE = 24;
+const MAX_PAGE_SIZE = 50; // YouTube's own ceiling for playlistItems.list
 
 interface GoogleTokenResponse {
   access_token: string;
@@ -42,6 +50,41 @@ interface YouTubeChannelsResponse {
       thumbnails?: { default?: { url?: string } };
     };
   }>;
+}
+
+interface YouTubeChannelUploadsResponse {
+  items?: Array<{
+    contentDetails?: { relatedPlaylists?: { uploads?: string } };
+  }>;
+}
+
+interface YouTubePlaylistItemsResponse {
+  items?: Array<{ contentDetails?: { videoId?: string } }>;
+  nextPageToken?: string;
+}
+
+interface YouTubeVideosListResponse {
+  items?: Array<{
+    id: string;
+    snippet?: {
+      title?: string;
+      description?: string;
+      publishedAt?: string;
+      thumbnails?: { medium?: { url?: string }; default?: { url?: string } };
+    };
+    contentDetails?: { duration?: string };
+    statistics?: { viewCount?: string };
+    status?: { privacyStatus?: string; embeddable?: boolean };
+  }>;
+}
+
+/** Parses an ISO 8601 duration ("PT4M13S") into whole seconds. Undefined for a malformed/missing value. */
+function parseIsoDuration(duration: string | undefined): number | undefined {
+  if (!duration) return undefined;
+  const match = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/.exec(duration);
+  if (!match) return undefined;
+  const [, hours, minutes, seconds] = match;
+  return (Number(hours ?? 0) * 3600) + (Number(minutes ?? 0) * 60) + Number(seconds ?? 0);
 }
 
 @Injectable()
@@ -161,6 +204,95 @@ export class YouTubeProvider implements SocialProvider {
       // Best-effort: Google's revoke endpoint being unreachable shouldn't block a local disconnect.
       this.logger.warn(`Failed to revoke token with Google: ${(err as Error).message}`);
     }
+  }
+
+  /**
+   * Lists videos already on the channel, newest first. Costs ~3 quota units per page
+   * (channels + playlistItems + videos, 1 unit each) versus 100 for search.list — the
+   * two-step playlist→videos chain is needed anyway because playlistItems doesn't
+   * return privacyStatus, which the frontend needs to decide whether a video can be
+   * embedded at all.
+   */
+  async listPosts(
+    accessToken: string,
+    opts: { pageToken?: string; limit?: number },
+  ): Promise<ListPostsResult> {
+    const uploadsPlaylistId = await this.getUploadsPlaylistId(accessToken);
+    if (!uploadsPlaylistId) {
+      return { items: [] };
+    }
+
+    const limit = Math.min(Math.max(opts.limit ?? DEFAULT_PAGE_SIZE, 1), MAX_PAGE_SIZE);
+    const playlistParams = new URLSearchParams({
+      part: 'contentDetails',
+      playlistId: uploadsPlaylistId,
+      maxResults: String(limit),
+    });
+    if (opts.pageToken) {
+      playlistParams.set('pageToken', opts.pageToken);
+    }
+
+    const playlistResponse = await fetch(`${YOUTUBE_PLAYLIST_ITEMS_URL}?${playlistParams}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!playlistResponse.ok) {
+      await this.throwForFailedResponse(playlistResponse, 'Failed to list videos');
+    }
+    const playlistData = (await playlistResponse.json()) as YouTubePlaylistItemsResponse;
+
+    const videoIds = (playlistData.items ?? [])
+      .map((item) => item.contentDetails?.videoId)
+      .filter((id): id is string => Boolean(id));
+
+    if (videoIds.length === 0) {
+      return { items: [], nextPageToken: playlistData.nextPageToken };
+    }
+
+    // A single batched call handles all ids (YouTube allows up to 50), same 1-unit cost
+    // regardless of how many ids are requested.
+    const videosParams = new URLSearchParams({
+      part: 'snippet,contentDetails,statistics,status',
+      id: videoIds.join(','),
+    });
+    const videosResponse = await fetch(`${YOUTUBE_VIDEOS_URL}?${videosParams}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!videosResponse.ok) {
+      await this.throwForFailedResponse(videosResponse, 'Failed to fetch video details');
+    }
+    const videosData = (await videosResponse.json()) as YouTubeVideosListResponse;
+
+    // videos.list doesn't guarantee response order matches the id list, so re-sort by
+    // the playlist's (newest-first) order.
+    const videoById = new Map((videosData.items ?? []).map((v) => [v.id, v] as const));
+    const items: ExternalPost[] = videoIds
+      .map((id) => videoById.get(id))
+      .filter((v): v is NonNullable<typeof v> => Boolean(v))
+      .map((v) => ({
+        platformPostId: v.id,
+        title: v.snippet?.title ?? '(untitled)',
+        description: v.snippet?.description,
+        thumbnailUrl: v.snippet?.thumbnails?.medium?.url ?? v.snippet?.thumbnails?.default?.url,
+        privacyStatus: (v.status?.privacyStatus as PrivacyStatus | undefined) ?? 'private',
+        publishedAt: v.snippet?.publishedAt ?? new Date(0).toISOString(),
+        durationSeconds: parseIsoDuration(v.contentDetails?.duration),
+        viewCount: v.statistics?.viewCount !== undefined ? Number(v.statistics.viewCount) : undefined,
+        // Google omits `embeddable` entirely when it hasn't been restricted — default true.
+        isEmbeddable: v.status?.embeddable ?? true,
+      }));
+
+    return { items, nextPageToken: playlistData.nextPageToken };
+  }
+
+  private async getUploadsPlaylistId(accessToken: string): Promise<string | null> {
+    const response = await fetch(`${YOUTUBE_CHANNELS_URL}?part=contentDetails&mine=true`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      await this.throwForFailedResponse(response, 'Failed to resolve the channel uploads playlist');
+    }
+    const data = (await response.json()) as YouTubeChannelUploadsResponse;
+    return data.items?.[0]?.contentDetails?.relatedPlaylists?.uploads ?? null;
   }
 
   /**

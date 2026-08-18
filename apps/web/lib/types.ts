@@ -32,3 +32,20 @@ export interface PublishingJob {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface ExternalPost {
+  platformPostId: string;
+  title: string;
+  description?: string;
+  thumbnailUrl?: string;
+  privacyStatus: PrivacyStatus;
+  publishedAt: string;
+  durationSeconds?: number;
+  viewCount?: number;
+  isEmbeddable: boolean;
+}
+
+export interface ListVideosResult {
+  items: ExternalPost[];
+  nextPageToken?: string;
+}

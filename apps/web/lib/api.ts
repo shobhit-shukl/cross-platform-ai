@@ -1,4 +1,10 @@
-import type { CurrentUser, PrivacyStatus, PublishingJob, SocialAccount } from './types';
+import type {
+  CurrentUser,
+  ListVideosResult,
+  PrivacyStatus,
+  PublishingJob,
+  SocialAccount,
+} from './types';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000';
 
@@ -6,6 +12,8 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    /** Machine-readable code from the backend (e.g. "reauth_required"), when present. */
+    public readonly errorCode?: string,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -21,7 +29,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new ApiError(body?.message ?? `Request failed (${res.status})`, res.status);
+    throw new ApiError(body?.message ?? `Request failed (${res.status})`, res.status, body?.errorCode);
   }
 
   if (res.status === 204) return undefined as T;
@@ -126,4 +134,15 @@ export function listPublishingJobs(limit = 10): Promise<{ jobs: PublishingJob[] 
 
 export function cancelPublishingJob(id: string): Promise<{ job: PublishingJob }> {
   return apiFetch(`/api/publishing-jobs/${id}/cancel`, { method: 'POST' });
+}
+
+export function listYouTubeVideos(opts?: {
+  pageToken?: string;
+  limit?: number;
+}): Promise<ListVideosResult> {
+  const params = new URLSearchParams();
+  if (opts?.pageToken) params.set('pageToken', opts.pageToken);
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  const qs = params.toString();
+  return apiFetch(`/api/youtube/videos${qs ? `?${qs}` : ''}`);
 }

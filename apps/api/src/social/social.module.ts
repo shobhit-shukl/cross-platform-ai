@@ -10,6 +10,8 @@ import { TokenRefreshService } from './token-refresh.service';
 import { YouTubePublishController } from './youtube-publish.controller';
 import { PublishingJobsController } from './publishing-jobs.controller';
 import { PublishingService } from './publishing.service';
+import { VideosController } from './videos.controller';
+import { VideosService } from './videos.service';
 
 @Module({
   imports: [AuthModule],
@@ -18,6 +20,7 @@ import { PublishingService } from './publishing.service';
     SocialAccountsController,
     YouTubePublishController,
     PublishingJobsController,
+    VideosController,
   ],
   providers: [
     YouTubeProvider,
@@ -26,6 +29,7 @@ import { PublishingService } from './publishing.service';
     SocialAccountsService,
     TokenRefreshService,
     PublishingService,
+    VideosService,
   ],
   exports: [TokenRefreshService],
 })
