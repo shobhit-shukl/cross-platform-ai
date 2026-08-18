@@ -1,5 +1,6 @@
 'use client';
 
+import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import {
   ApiError,
@@ -8,6 +9,7 @@ import {
   publishVideoToYouTube,
 } from '@/lib/api';
 import type { PrivacyStatus, PublishingJob } from '@/lib/types';
+import { scaleIn, smooth, spring } from '@/lib/motion';
 
 const MAX_VIDEO_SIZE_BYTES = 500 * 1024 * 1024;
 const POLL_INTERVAL_MS = 2000;
@@ -30,6 +32,7 @@ export function PublishForm({ onJobSettled }: { onJobSettled?: () => void }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [privacyStatus, setPrivacyStatus] = useState<PrivacyStatus>('private');
+  const [dragging, setDragging] = useState(false);
 
   const [stage, setStage] = useState<Stage>('idle');
   const [progress, setProgress] = useState(0);
@@ -46,8 +49,7 @@ export function PublishForm({ onJobSettled }: { onJobSettled?: () => void }) {
     };
   }, [previewUrl]);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0] ?? null;
+  function handleFile(selected: File | null) {
     setValidationError(null);
 
     if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -143,7 +145,7 @@ export function PublishForm({ onJobSettled }: { onJobSettled?: () => void }) {
       abortUploadRef.current = null;
       return;
     }
-    if (job && (stage === 'processing')) {
+    if (job && stage === 'processing') {
       if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current);
       try {
         const { job: cancelled } = await cancelPublishingJob(job.id);
@@ -158,142 +160,195 @@ export function PublishForm({ onJobSettled }: { onJobSettled?: () => void }) {
 
   const isBusy = stage === 'uploading' || stage === 'processing';
   const canPublish = !!file && title.trim().length > 0 && !isBusy;
+  const inputClass =
+    'mt-1 w-full rounded-md border border-border-strong bg-white/[0.03] px-3 py-2 text-sm text-ink transition focus:border-brand-violet focus:outline-none focus:ring-2 focus:ring-brand-violet/30 disabled:opacity-50';
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-900">Create Post</h2>
+    <section className="rounded-xl border border-border bg-surface/60 p-6 backdrop-blur">
+      <h2 className="text-base font-semibold text-ink">Create Post</h2>
 
-      {stage === 'published' && job ? (
-        <PublishedSuccess job={job} onCreateAnother={resetForm} />
-      ) : (
-        <div className="mt-4 space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-slate-700">Select Video</label>
-            <input
-              type="file"
-              accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,.mp4,.mov,.webm,.avi"
-              onChange={handleFileChange}
-              disabled={isBusy}
-              className="mt-1 block w-full text-sm text-slate-600 file:mr-4 file:rounded-md file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-800 disabled:opacity-50"
-            />
-            {validationError && <p className="mt-1 text-sm text-red-600">{validationError}</p>}
-          </div>
-
-          {previewUrl && (
+      <AnimatePresence mode="wait">
+        {stage === 'published' && job ? (
+          <PublishedSuccess key="success" job={job} onCreateAnother={resetForm} />
+        ) : (
+          <motion.div
+            key="form"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="mt-4 space-y-5"
+          >
             <div>
-              <p className="mb-1 text-sm font-medium text-slate-700">Video Preview</p>
-              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-              <video src={previewUrl} controls className="max-h-72 w-full rounded-md bg-black" />
-            </div>
-          )}
-
-          <div className="border-t border-slate-100 pt-5">
-            <p className="mb-3 text-sm font-semibold text-slate-900">YouTube</p>
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="title" className="block text-sm font-medium text-slate-700">
-                  Title
-                </label>
+              <label className="block text-sm font-medium text-ink-soft">Select Video</label>
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!isBusy) setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  if (!isBusy) handleFile(e.dataTransfer.files?.[0] ?? null);
+                }}
+                className={`mt-1 rounded-lg border-2 border-dashed p-6 text-center transition ${
+                  dragging
+                    ? 'scale-[1.01] border-brand-violet bg-brand-violet/10'
+                    : 'border-border-strong bg-white/[0.02]'
+                }`}
+              >
                 <input
-                  id="title"
-                  type="text"
-                  value={title}
-                  maxLength={100}
-                  onChange={(e) => setTitle(e.target.value)}
+                  id="video"
+                  type="file"
+                  accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,.mp4,.mov,.webm,.avi"
+                  onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
                   disabled={isBusy}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:opacity-50"
+                  className="block w-full text-sm text-ink-soft file:mr-4 file:rounded-md file:border-0 file:bg-brand-gradient file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:brightness-110 disabled:opacity-50"
                 />
+                <p className="mt-2 text-xs text-ink-faint">or drag a video file here</p>
               </div>
+              {validationError && <p className="mt-1 text-sm text-rose-400">{validationError}</p>}
+            </div>
 
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-slate-700">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  value={description}
-                  maxLength={5000}
-                  rows={4}
-                  onChange={(e) => setDescription(e.target.value)}
-                  disabled={isBusy}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:opacity-50"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="privacy" className="block text-sm font-medium text-slate-700">
-                  Privacy
-                </label>
-                <select
-                  id="privacy"
-                  value={privacyStatus}
-                  onChange={(e) => setPrivacyStatus(e.target.value as PrivacyStatus)}
-                  disabled={isBusy}
-                  className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:opacity-50"
+            <AnimatePresence>
+              {previewUrl && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
                 >
-                  <option value="private">Private</option>
-                  <option value="unlisted">Unlisted</option>
-                  <option value="public">Public</option>
-                </select>
+                  <p className="mb-1 text-sm font-medium text-ink-soft">Video Preview</p>
+                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                  <video src={previewUrl} controls className="max-h-72 w-full rounded-md bg-black" />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="border-t border-border pt-5">
+              <p className="mb-3 text-sm font-semibold text-ink">YouTube</p>
+
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="title" className="block text-sm font-medium text-ink-soft">
+                    Title
+                  </label>
+                  <input
+                    id="title"
+                    type="text"
+                    value={title}
+                    maxLength={100}
+                    onChange={(e) => setTitle(e.target.value)}
+                    disabled={isBusy}
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="description" className="block text-sm font-medium text-ink-soft">
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    value={description}
+                    maxLength={5000}
+                    rows={4}
+                    onChange={(e) => setDescription(e.target.value)}
+                    disabled={isBusy}
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="privacy" className="block text-sm font-medium text-ink-soft">
+                    Privacy
+                  </label>
+                  <select
+                    id="privacy"
+                    value={privacyStatus}
+                    onChange={(e) => setPrivacyStatus(e.target.value as PrivacyStatus)}
+                    disabled={isBusy}
+                    className={inputClass}
+                  >
+                    <option value="private">Private</option>
+                    <option value="unlisted">Unlisted</option>
+                    <option value="public">Public</option>
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
 
-          {stage === 'uploading' && (
-            <div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full bg-red-600 transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="mt-1 text-sm text-slate-500">Uploading… {progress}%</p>
-            </div>
-          )}
+            <AnimatePresence>
+              {stage === 'uploading' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                  <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+                    <motion.div
+                      className="relative h-full overflow-hidden rounded-full bg-brand-gradient"
+                      animate={{ width: `${progress}%` }}
+                      transition={smooth}
+                    >
+                      <div className="motion-safe:animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                    </motion.div>
+                  </div>
+                  <p className="mt-1 text-sm text-ink-soft">Uploading… {progress}%</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {stage === 'processing' && (
-            <p className="text-sm text-slate-500">Publishing to YouTube… this can take a moment for larger files.</p>
-          )}
-
-          {stage === 'failed' && (
-            <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-              {job?.errorCode && ERROR_MESSAGES[job.errorCode]
-                ? ERROR_MESSAGES[job.errorCode]
-                : job?.error ?? validationError ?? 'Something went wrong while publishing.'}
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handlePublish}
-              disabled={!canPublish}
-              className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Publish to YouTube
-            </button>
-            {isBusy && (
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
+            {stage === 'processing' && (
+              <p className="text-sm text-ink-soft">
+                Publishing to YouTube… this can take a moment for larger files.
+              </p>
             )}
-            {stage === 'failed' && (
-              <button
+
+            <AnimatePresence>
+              {stage === 'failed' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden rounded-md border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300"
+                >
+                  {job?.errorCode && ERROR_MESSAGES[job.errorCode]
+                    ? ERROR_MESSAGES[job.errorCode]
+                    : job?.error ?? validationError ?? 'Something went wrong while publishing.'}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <div className="flex gap-3">
+              <motion.button
                 type="button"
-                onClick={resetForm}
-                className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                onClick={handlePublish}
+                disabled={!canPublish}
+                whileTap={canPublish ? { scale: 0.97 } : undefined}
+                transition={spring}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_0_20px_-6px_rgba(220,38,38,0.6)] transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Try again
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+                Publish to YouTube
+              </motion.button>
+              {isBusy && (
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-ink-soft transition hover:text-ink active:scale-95"
+                >
+                  Cancel
+                </button>
+              )}
+              {stage === 'failed' && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-ink-soft transition hover:text-ink active:scale-95"
+                >
+                  Try again
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
@@ -302,9 +357,25 @@ function PublishedSuccess({ job, onCreateAnother }: { job: PublishingJob; onCrea
   const watchUrl = job.platformPostId ? `https://www.youtube.com/watch?v=${job.platformPostId}` : null;
 
   return (
-    <div className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-5 py-6 text-center">
-      <p className="text-base font-semibold text-emerald-800">Published Successfully ✓</p>
-      <p className="mt-1 text-sm text-emerald-700">
+    <motion.div
+      key="success"
+      initial="hidden"
+      animate="visible"
+      variants={scaleIn}
+      className="mt-4 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-5 py-6 text-center"
+    >
+      <motion.div
+        initial={{ scale: 0, rotate: -30 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ ...spring, delay: 0.1 }}
+        className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20"
+      >
+        <svg viewBox="0 0 24 24" className="h-7 w-7 text-emerald-400" fill="none" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </motion.div>
+      <p className="mt-3 text-base font-semibold text-emerald-300">Published Successfully</p>
+      <p className="mt-1 text-sm text-emerald-200/80">
         &ldquo;{job.title}&rdquo; is now on YouTube ({job.privacyStatus}).
       </p>
       {watchUrl && (
@@ -312,27 +383,29 @@ function PublishedSuccess({ job, onCreateAnother }: { job: PublishingJob; onCrea
           href={watchUrl}
           target="_blank"
           rel="noreferrer"
-          className="mt-3 inline-block text-sm font-medium text-emerald-800 underline"
+          className="mt-3 inline-block text-sm font-medium text-emerald-300 underline"
         >
           View on YouTube →
         </a>
       )}
-      <p className="mt-2 text-xs text-emerald-700">
+      <p className="mt-2 text-xs text-emerald-200/70">
         Video ID: <code>{job.platformPostId}</code>
       </p>
       {job.privacyStatus === 'public' && (
-        <p className="mt-3 text-xs text-emerald-600">
+        <p className="mt-3 text-xs text-emerald-200/60">
           Note: if this project hasn&apos;t completed YouTube&apos;s API audit, Google may keep the video
           private regardless of the privacy setting sent.
         </p>
       )}
-      <button
+      <motion.button
         type="button"
         onClick={onCreateAnother}
-        className="mt-4 rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+        whileTap={{ scale: 0.97 }}
+        transition={spring}
+        className="mt-4 rounded-md bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-[0_0_20px_-6px_rgba(139,92,246,0.7)] transition hover:brightness-110"
       >
         Create another post
-      </button>
-    </div>
+      </motion.button>
+    </motion.div>
   );
 }

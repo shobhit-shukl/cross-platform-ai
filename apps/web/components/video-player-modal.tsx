@@ -1,6 +1,8 @@
 'use client';
 
+import { motion } from 'motion/react';
 import { useEffect, useRef } from 'react';
+import { scaleIn, smooth } from '@/lib/motion';
 
 interface VideoPlayerModalProps {
   videoId: string;
@@ -12,6 +14,9 @@ interface VideoPlayerModalProps {
  * A lightbox player. Renders on top of the video grid so a user can watch several
  * videos in a row without losing their scroll position. Uses youtube-nocookie.com,
  * which defers setting tracking cookies until the video is actually played.
+ *
+ * The parent renders this inside <AnimatePresence>, which is what makes the exit
+ * animation possible at all — without it the element would just vanish on unmount.
  */
 export function VideoPlayerModal({ videoId, title, onClose }: VideoPlayerModalProps) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -39,16 +44,20 @@ export function VideoPlayerModal({ videoId, title, onClose }: VideoPlayerModalPr
   }, [onClose]);
 
   return (
-    <div
+    <motion.div
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={smooth}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="w-full max-w-4xl">
+      <motion.div variants={scaleIn} initial="hidden" animate="visible" exit="hidden" className="w-full max-w-4xl">
         <div className="mb-2 flex items-center justify-between gap-4">
           <p className="truncate text-sm font-medium text-white">{title}</p>
           <button
@@ -56,7 +65,7 @@ export function VideoPlayerModal({ videoId, title, onClose }: VideoPlayerModalPr
             type="button"
             onClick={onClose}
             aria-label="Close video"
-            className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20"
+            className="shrink-0 rounded-full bg-white/10 p-2 text-white transition hover:bg-white/20 active:scale-90"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" d="M6 6l12 12M18 6L6 18" />
@@ -64,7 +73,7 @@ export function VideoPlayerModal({ videoId, title, onClose }: VideoPlayerModalPr
           </button>
         </div>
 
-        <div className="aspect-video w-full overflow-hidden rounded-lg bg-black shadow-2xl">
+        <div className="aspect-video w-full overflow-hidden rounded-lg bg-black shadow-2xl shadow-brand-violet/20">
           <iframe
             key={videoId}
             src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
@@ -74,7 +83,7 @@ export function VideoPlayerModal({ videoId, title, onClose }: VideoPlayerModalPr
             allowFullScreen
           />
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

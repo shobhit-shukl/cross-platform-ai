@@ -1,10 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'motion/react';
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ConnectedAccounts } from '@/components/connected-accounts';
+import { AnimatedBackground } from '@/components/ui/animated-background';
+import { ConnectedAccountsSkeleton } from '@/components/ui/skeletons';
 import { getCurrentUser, listSocialAccounts, logout } from '@/lib/api';
+import { fadeUp } from '@/lib/motion';
 import type { CurrentUser, SocialAccount } from '@/lib/types';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -20,7 +24,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<CenteredMessage>Loading…</CenteredMessage>}>
+    <Suspense fallback={<DashboardSkeleton />}>
       <DashboardContent />
     </Suspense>
   );
@@ -77,7 +81,7 @@ function DashboardContent() {
   }, [searchParams]);
 
   if (loading) {
-    return <CenteredMessage>Loading…</CenteredMessage>;
+    return <DashboardSkeleton />;
   }
 
   if (!user || !accounts) {
@@ -85,22 +89,26 @@ function DashboardContent() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <div className="mb-8 flex items-center justify-between">
+    <main className="relative mx-auto max-w-3xl px-4 py-10">
+      <AnimatedBackground intensity="low" />
+
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeUp}
+        className="mb-8 flex items-center justify-between"
+      >
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
-          <p className="mt-1 text-sm text-slate-500">Signed in as {user.email}</p>
+          <h1 className="text-2xl font-semibold text-ink">Dashboard</h1>
+          <p className="mt-1 text-sm text-ink-soft">Signed in as {user.email}</p>
         </div>
         <div className="flex items-center gap-4">
-          <Link
-            href="/videos"
-            className="text-sm font-medium text-slate-600 hover:text-slate-900"
-          >
+          <Link href="/videos" className="text-sm font-medium text-ink-soft transition hover:text-ink">
             Your Videos
           </Link>
           <Link
             href="/create"
-            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className="rounded-md bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-[0_0_20px_-6px_rgba(139,92,246,0.7)] transition hover:brightness-110 active:scale-95"
           >
             Create Post
           </Link>
@@ -110,32 +118,42 @@ function DashboardContent() {
               await logout();
               router.push('/login');
             }}
-            className="text-sm text-slate-500 hover:text-slate-700"
+            className="text-sm text-ink-faint transition hover:text-ink-soft"
           >
             Sign out
           </button>
         </div>
-      </div>
+      </motion.div>
 
-      {banner && (
-        <div
-          className={`mb-6 rounded-md px-4 py-3 text-sm ${
-            banner.type === 'success'
-              ? 'border border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border border-red-200 bg-red-50 text-red-800'
-          }`}
-        >
-          {banner.text}
-        </div>
-      )}
+      <AnimatePresence>
+        {banner && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className={`overflow-hidden rounded-md px-4 py-3 text-sm ${
+              banner.type === 'success'
+                ? 'border border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
+                : 'border border-rose-500/20 bg-rose-500/10 text-rose-300'
+            }`}
+          >
+            {banner.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <ConnectedAccounts initialAccounts={accounts} />
+      <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+        <ConnectedAccounts initialAccounts={accounts} />
+      </motion.div>
     </main>
   );
 }
 
-function CenteredMessage({ children }: { children: React.ReactNode }) {
+function DashboardSkeleton() {
   return (
-    <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">{children}</div>
+    <main className="relative mx-auto max-w-3xl px-4 py-10">
+      <AnimatedBackground intensity="low" />
+      <ConnectedAccountsSkeleton />
+    </main>
   );
 }

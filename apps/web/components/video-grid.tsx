@@ -1,8 +1,10 @@
 'use client';
 
+import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
 import { VideoPlayerModal } from './video-player-modal';
 import type { ExternalPost } from '@/lib/types';
+import { fadeUp, revealOnScroll, staggerContainer } from '@/lib/motion';
 
 function formatDuration(seconds: number | undefined): string | null {
   if (seconds === undefined) return null;
@@ -22,9 +24,9 @@ function formatViewCount(count: number | undefined): string | null {
 }
 
 const PRIVACY_STYLES: Record<ExternalPost['privacyStatus'], string> = {
-  public: 'bg-emerald-100 text-emerald-800',
-  unlisted: 'bg-amber-100 text-amber-800',
-  private: 'bg-slate-200 text-slate-700',
+  public: 'bg-emerald-500/15 text-emerald-300',
+  unlisted: 'bg-amber-500/15 text-amber-300',
+  private: 'bg-white/10 text-ink-soft',
 };
 
 export function VideoGrid({
@@ -44,7 +46,11 @@ export function VideoGrid({
 
   return (
     <>
-      <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <motion.ul
+        {...revealOnScroll}
+        variants={staggerContainer}
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+      >
         {videos.map((video) => {
           const embeddable = canEmbed(video);
           const duration = formatDuration(video.durationSeconds);
@@ -52,28 +58,29 @@ export function VideoGrid({
           const watchUrl = `https://www.youtube.com/watch?v=${video.platformPostId}`;
 
           return (
-            <li
+            <motion.li
               key={video.platformPostId}
-              className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+              variants={fadeUp}
+              className="overflow-hidden rounded-xl border border-border bg-surface/60 backdrop-blur transition-colors hover:border-brand-violet/40"
             >
               <button
                 type="button"
                 onClick={() => (embeddable ? setPlaying(video) : window.open(watchUrl, '_blank', 'noreferrer'))}
-                className="group relative block aspect-video w-full bg-slate-900"
+                className="group relative block aspect-video w-full overflow-hidden bg-black"
               >
                 {video.thumbnailUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={video.thumbnailUrl}
                     alt=""
-                    className="h-full w-full object-cover transition group-hover:opacity-90"
+                    className="h-full w-full object-cover transition duration-slow ease-smooth group-hover:scale-105"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-slate-500">No thumbnail</div>
+                  <div className="flex h-full w-full items-center justify-center text-ink-faint">No thumbnail</div>
                 )}
 
-                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/20">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition group-hover:opacity-100">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/30">
+                  <span className="flex h-12 w-12 scale-90 items-center justify-center rounded-full bg-white/90 opacity-0 shadow transition duration-base ease-spring group-hover:scale-100 group-hover:opacity-100">
                     {embeddable ? (
                       <svg viewBox="0 0 24 24" className="ml-0.5 h-5 w-5 text-slate-900" fill="currentColor">
                         <path d="M8 5v14l11-7z" />
@@ -94,7 +101,7 @@ export function VideoGrid({
               </button>
 
               <div className="p-4">
-                <p className="line-clamp-2 text-sm font-medium text-slate-900">{video.title}</p>
+                <p className="line-clamp-2 text-sm font-medium text-ink">{video.title}</p>
 
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span
@@ -103,13 +110,13 @@ export function VideoGrid({
                     {video.privacyStatus}
                   </span>
                   {publishedViaAppIds.has(video.platformPostId) && (
-                    <span className="rounded-full bg-slate-900 px-2 py-0.5 text-xs font-medium text-white">
+                    <span className="rounded-full bg-brand-gradient px-2 py-0.5 text-xs font-medium text-white">
                       via CrossPost AI
                     </span>
                   )}
                 </div>
 
-                <p className="mt-2 text-xs text-slate-500">
+                <p className="mt-2 text-xs text-ink-faint">
                   {[views, new Date(video.publishedAt).toLocaleDateString()].filter(Boolean).join(' · ')}
                 </p>
 
@@ -118,24 +125,26 @@ export function VideoGrid({
                     href={watchUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-2 inline-block text-xs font-medium text-red-600 hover:underline"
+                    className="mt-2 inline-block text-xs font-medium text-red-400 hover:underline"
                   >
                     {video.privacyStatus === 'private' ? 'Private — open on YouTube →' : 'Open on YouTube →'}
                   </a>
                 )}
               </div>
-            </li>
+            </motion.li>
           );
         })}
-      </ul>
+      </motion.ul>
 
-      {playing && (
-        <VideoPlayerModal
-          videoId={playing.platformPostId}
-          title={playing.title}
-          onClose={() => setPlaying(null)}
-        />
-      )}
+      <AnimatePresence>
+        {playing && (
+          <VideoPlayerModal
+            videoId={playing.platformPostId}
+            title={playing.title}
+            onClose={() => setPlaying(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

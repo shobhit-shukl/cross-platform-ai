@@ -2,11 +2,55 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --canvas: #0a0a12;
+  --surface: #131320;
+  --surface-hover: #1a1a2c;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --ink: #f4f4f8;
+  --ink-soft: #a1a1b8;
+  --ink-faint: #6b6b80;
+}
+
 html,
 body {
   height: 100%;
 }
 
 body {
-  background-color: #f8fafc;
+  background-color: var(--canvas);
+  color: var(--ink);
+}
+
+/* Respect the OS-level motion preference. Ambient/decorative loops (aurora blobs,
+   marquee) are authored with Tailwind's `motion-safe:` variant so they never render at
+   all for these users; this block is the site-wide safety net underneath that, in case
+   an animation or transition slips through unguarded. Framer Motion honours the same
+   preference on its own via `useReducedMotion`. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar tuned for the dark canvas — the default light scrollbar reads as a bug on a near-black page. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
 }

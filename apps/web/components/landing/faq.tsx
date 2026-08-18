@@ -1,3 +1,9 @@
+'use client';
+
+import { AnimatePresence, motion } from 'motion/react';
+import { useState } from 'react';
+import { fadeUp, revealOnScroll, smooth } from '@/lib/motion';
+
 const FAQS = [
   {
     q: 'Which platforms work right now?',
@@ -26,37 +32,60 @@ const FAQS = [
 ];
 
 export function Faq() {
-  return (
-    <section id="faq" className="scroll-mt-20 bg-white py-20">
-      <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-            Questions, answered
-          </h2>
-        </div>
+  // Native <details> can't animate height without JS, so this is one of the few
+  // interactive-state components in the landing tree — button + aria-expanded is the
+  // standard accessible pattern for a JS-driven accordion.
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-        <div className="mt-12 divide-y divide-slate-200 border-y border-slate-200">
-          {FAQS.map((faq) => (
-            // Native <details> keeps this a server component and is keyboard-accessible
-            // without any JavaScript.
-            <details key={faq.q} className="group py-5">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left text-base font-medium text-slate-900 [&::-webkit-details-marker]:hidden">
-                {faq.q}
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 group-open:rotate-45"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={1.8}
-                  strokeLinecap="round"
-                  aria-hidden
+  return (
+    <section id="faq" className="scroll-mt-20 py-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <motion.div {...revealOnScroll} variants={fadeUp} className="text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-ink">Questions, answered</h2>
+        </motion.div>
+
+        <div className="mt-12 divide-y divide-border border-y border-border">
+          {FAQS.map((faq, i) => {
+            const isOpen = openIndex === i;
+            return (
+              <div key={faq.q} className="py-5">
+                <button
+                  type="button"
+                  aria-expanded={isOpen}
+                  onClick={() => setOpenIndex(isOpen ? null : i)}
+                  className="flex w-full cursor-pointer items-center justify-between gap-4 text-left text-base font-medium text-ink"
                 >
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-              </summary>
-              <p className="mt-3 pr-9 text-sm leading-relaxed text-slate-600">{faq.a}</p>
-            </details>
-          ))}
+                  {faq.q}
+                  <motion.svg
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5 shrink-0 text-ink-faint"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    aria-hidden
+                    animate={{ rotate: isOpen ? 45 : 0 }}
+                    transition={smooth}
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </motion.svg>
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={smooth}
+                      className="overflow-hidden"
+                    >
+                      <p className="mt-3 pr-9 text-sm leading-relaxed text-ink-soft">{faq.a}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>

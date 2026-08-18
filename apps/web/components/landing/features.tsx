@@ -1,3 +1,8 @@
+'use client';
+
+import { motion } from 'motion/react';
+import { fadeUp, hoverLift, revealOnScroll, staggerContainer } from '@/lib/motion';
+
 const FEATURES = [
   {
     title: 'AI-written metadata',
@@ -54,25 +59,31 @@ const FEATURES = [
 
 export function Features() {
   return (
-    <section id="features" className="scroll-mt-20 bg-white py-20">
+    <section id="features" className="scroll-mt-20 py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+        <motion.div {...revealOnScroll} variants={fadeUp} className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-ink">
             Built to remove the repetitive part
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 text-ink-soft">
             The tedious work of reformatting and re-uploading the same content for every
             audience, handled for you.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <motion.div
+          {...revealOnScroll}
+          variants={staggerContainer}
+          className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {FEATURES.map((feature) => (
-            <div
+            <motion.div
               key={feature.title}
-              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              variants={fadeUp}
+              whileHover={hoverLift}
+              className="rounded-xl border border-border bg-surface/60 p-6 backdrop-blur transition-colors hover:border-brand-cyan/40"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-gradient text-white shadow-[0_0_18px_-4px_rgba(139,92,246,0.6)]">
                 <svg
                   viewBox="0 0 24 24"
                   className="h-5 w-5"
@@ -86,11 +97,11 @@ export function Features() {
                   {feature.icon}
                 </svg>
               </span>
-              <h3 className="mt-4 text-base font-semibold text-slate-900">{feature.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{feature.body}</p>
-            </div>
+              <h3 className="mt-4 text-base font-semibold text-ink">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{feature.body}</p>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

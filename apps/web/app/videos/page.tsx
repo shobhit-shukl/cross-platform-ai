@@ -1,9 +1,13 @@
 'use client';
 
 import Link from 'next/link';
+import { motion } from 'motion/react';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { VideoGrid } from '@/components/video-grid';
+import { AnimatedBackground } from '@/components/ui/animated-background';
+import { Skeleton } from '@/components/ui/skeleton';
+import { VideoGridSkeleton } from '@/components/ui/skeletons';
 import {
   ApiError,
   getCurrentUser,
@@ -11,6 +15,7 @@ import {
   listSocialAccounts,
   listYouTubeVideos,
 } from '@/lib/api';
+import { fadeUp } from '@/lib/motion';
 import type { ExternalPost, SocialAccount } from '@/lib/types';
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -95,25 +100,38 @@ export default function VideosPage() {
   }
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-slate-500">Loading…</div>;
+    return (
+      <main className="relative mx-auto max-w-6xl px-4 py-10">
+        <AnimatedBackground intensity="low" />
+        <Skeleton className="mb-8 h-9 w-56" />
+        <VideoGridSkeleton />
+      </main>
+    );
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
-      <div className="mb-8 flex items-center justify-between">
+    <main className="relative mx-auto max-w-6xl px-4 py-10">
+      <AnimatedBackground intensity="low" />
+
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={fadeUp}
+        className="mb-8 flex items-center justify-between"
+      >
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Your Videos</h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <h1 className="text-2xl font-semibold text-ink">Your Videos</h1>
+          <p className="mt-1 text-sm text-ink-soft">
             {youtubeAccount?.displayName ? `From ${youtubeAccount.displayName}` : 'Videos on your connected channel'}
           </p>
         </div>
-        <Link href="/dashboard" className="text-sm text-slate-500 hover:text-slate-700">
+        <Link href="/dashboard" className="text-sm text-ink-soft transition hover:text-ink">
           ← Dashboard
         </Link>
-      </div>
+      </motion.div>
 
       {!youtubeAccount ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-6 text-sm text-amber-300">
           No YouTube account connected.{' '}
           <Link href="/dashboard" className="font-medium underline">
             Connect YouTube from the dashboard
@@ -121,7 +139,7 @@ export default function VideosPage() {
           to see your videos here.
         </div>
       ) : youtubeAccount.needsReauth ? (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-800">
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-6 text-sm text-amber-300">
           Your YouTube connection needs to be renewed before we can list your videos.{' '}
           <Link href="/dashboard" className="font-medium underline">
             Reconnect from the dashboard
@@ -129,18 +147,18 @@ export default function VideosPage() {
           .
         </div>
       ) : error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">
+        <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-6 text-sm text-rose-300">
           {error}{' '}
           <button type="button" onClick={loadFirstPage} className="font-medium underline">
             Try again
           </button>
         </div>
       ) : videos.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-10 text-center">
-          <p className="text-sm text-slate-500">No videos found on this channel yet.</p>
+        <div className="rounded-xl border border-border bg-surface/60 p-10 text-center backdrop-blur">
+          <p className="text-sm text-ink-soft">No videos found on this channel yet.</p>
           <Link
             href="/create"
-            className="mt-3 inline-block rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+            className="mt-3 inline-block rounded-md bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-[0_0_20px_-6px_rgba(139,92,246,0.7)] transition hover:brightness-110 active:scale-95"
           >
             Publish your first video
           </Link>
@@ -154,7 +172,7 @@ export default function VideosPage() {
                 type="button"
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="rounded-md border border-slate-300 bg-white px-5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                className="rounded-md border border-border-strong bg-surface/60 px-5 py-2 text-sm font-medium text-ink-soft backdrop-blur transition hover:text-ink active:scale-95 disabled:opacity-50"
               >
                 {loadingMore ? 'Loading…' : 'Load more'}
               </button>

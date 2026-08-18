@@ -22,19 +22,17 @@ const COLUMNS = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-slate-200 bg-white py-12">
+    <footer className="border-t border-border py-12">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex flex-col gap-10 sm:flex-row sm:justify-between">
           <div className="max-w-xs">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-sm font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-gradient text-sm font-bold text-white">
                 C
               </span>
-              <span className="text-base font-semibold tracking-tight text-slate-900">
-                CrossPost AI
-              </span>
+              <span className="text-base font-semibold tracking-tight text-ink">CrossPost AI</span>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-slate-500">
+            <p className="mt-3 text-sm leading-relaxed text-ink-faint">
               Publish once, everywhere. Connected through official platform APIs.
             </p>
           </div>
@@ -42,12 +40,12 @@ export function SiteFooter() {
           <div className="grid grid-cols-2 gap-10 sm:gap-16">
             {COLUMNS.map((column) => (
               <div key={column.heading}>
-                <h3 className="text-sm font-semibold text-slate-900">{column.heading}</h3>
+                <h3 className="text-sm font-semibold text-ink">{column.heading}</h3>
                 <ul className="mt-3 space-y-2">
                   {column.links.map((link) =>
                     link.href.startsWith('#') ? (
                       <li key={link.label}>
-                        <a href={link.href} className="text-sm text-slate-500 hover:text-slate-900">
+                        <a href={link.href} className="text-sm text-ink-faint transition hover:text-ink">
                           {link.label}
                         </a>
                       </li>
@@ -55,7 +53,7 @@ export function SiteFooter() {
                       <li key={link.label}>
                         <Link
                           href={link.href}
-                          className="text-sm text-slate-500 hover:text-slate-900"
+                          className="text-sm text-ink-faint transition hover:text-ink"
                         >
                           {link.label}
                         </Link>
@@ -68,8 +66,8 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-slate-100 pt-6">
-          <p className="text-xs text-slate-400">
+        <div className="mt-10 border-t border-border pt-6">
+          <p className="text-xs text-ink-faint">
             © {new Date().getFullYear()} CrossPost AI. Not affiliated with YouTube,
             Instagram, LinkedIn, TikTok, Snapchat, X or Facebook.
           </p>

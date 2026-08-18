@@ -1,3 +1,8 @@
+'use client';
+
+import { motion } from 'motion/react';
+import { fadeUp, revealOnScroll, staggerContainer } from '@/lib/motion';
+
 const STEPS = [
   {
     title: 'Connect your accounts',
@@ -15,34 +20,35 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section
-      id="how-it-works"
-      className="scroll-mt-20 border-y border-slate-200 bg-slate-50/60 py-20"
-    >
+    <section id="how-it-works" className="scroll-mt-20 border-y border-border py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
+        <motion.div {...revealOnScroll} variants={fadeUp} className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-ink">
             Three steps, then it&apos;s automatic
           </h2>
-          <p className="mt-4 text-slate-600">
+          <p className="mt-4 text-ink-soft">
             Connect once. After that, publishing everywhere is a single upload.
           </p>
-        </div>
+        </motion.div>
 
-        <ol className="mt-14 grid gap-6 md:grid-cols-3">
+        <motion.ol {...revealOnScroll} variants={staggerContainer} className="mt-14 grid gap-6 md:grid-cols-3">
           {STEPS.map((step, index) => (
-            <li
+            <motion.li
               key={step.title}
-              className="relative rounded-xl border border-slate-200 bg-white p-7 shadow-sm"
+              variants={fadeUp}
+              className="relative overflow-hidden rounded-xl border border-border bg-surface/60 p-7 backdrop-blur"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white">
+              <span className="pointer-events-none absolute -right-4 -top-6 text-7xl font-bold text-white/[0.04]">
                 {index + 1}
               </span>
-              <h3 className="mt-4 text-base font-semibold text-slate-900">{step.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.body}</p>
-            </li>
+              <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-brand-gradient text-sm font-semibold text-white shadow-[0_0_16px_-4px_rgba(139,92,246,0.7)]">
+                {index + 1}
+              </span>
+              <h3 className="relative mt-4 text-base font-semibold text-ink">{step.title}</h3>
+              <p className="relative mt-2 text-sm leading-relaxed text-ink-soft">{step.body}</p>
+            </motion.li>
           ))}
-        </ol>
+        </motion.ol>
       </div>
     </section>
   );
