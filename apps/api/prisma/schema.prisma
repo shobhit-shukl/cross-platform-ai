@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Platform {
+  YOUTUBE
+  INSTAGRAM
+  FACEBOOK
+}
+
+enum PublishStatus {
+  QUEUED
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  socialAccounts SocialAccount[]
+  publishingJobs PublishingJob[]
+
+  @@map("users")
+}
+
+/// One row per connected external social/platform account (YouTube channel, IG business
+/// account, FB page, ...). Token fields hold AES-256-GCM ciphertext, never raw tokens.
+model SocialAccount {
+  id     String   @id @default(uuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  platform Platform
+
+  /// The platform's own identifier for the account (YouTube channelId, IG business
+  /// account id, FB page id, ...).
+  platformUserId String
+
+  /// Human-readable label shown in the UI (YouTube channel title, IG username, ...).
+  displayName String?
+  avatarUrl   String?
+
+  /// AES-256-GCM encrypted ("iv:authTag:ciphertext", base64). Never returned to the client.
+  accessToken  String
+  /// AES-256-GCM encrypted. Nullable because Google only issues one on first consent.
+  refreshToken String?
+
+  scope     String?
+  expiresAt DateTime?
+
+  /// Set true when a refresh attempt fails with invalid_grant (revoked/expired offline
+  /// access), so the UI can prompt a reconnect instead of silently failing later.
+  needsReauth Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  publishingJobs PublishingJob[]
+
+  @@unique([userId, platform, platformUserId], name: "userId_platform_platformUserId")
+  @@index([userId])
+  @@map("social_accounts")
+}
+
+/// A single video publish attempt. One row per click of "Publish to YouTube" — created
+/// as QUEUED before the upload to Google starts, so the frontend always has something
+/// to poll even if the upload itself fails immediately.
+model PublishingJob {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  platform Platform
+
+  /// Nullable + SetNull: disconnecting the channel later must not destroy publish history.
+  socialAccountId String?
+  socialAccount    SocialAccount? @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
+
+  status PublishStatus @default(QUEUED)
+
+  /// The platform's id for the created post (YouTube video id once upload succeeds).
+  platformPostId String?
+
+  title         String
+  description   String?
+  privacyStatus String
+
+  fileName      String?
+  fileSizeBytes BigInt?
+
+  /// Human-readable message shown in the UI.
+  error String?
+  /// Machine-readable code the frontend maps to a specific message/action (e.g. "reauth_required").
+  errorCode String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@map("publishing_jobs")
+}

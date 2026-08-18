@@ -1,0 +1,24 @@
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+
+.env
+.env.local
+.env.*.local
+!.env.example
+
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+.DS_Store
+Thumbs.db
+
+apps/api/generated/
+
+# typescript / next build artifacts
+*.tsbuildinfo
+next-env.d.ts
