@@ -4,6 +4,8 @@ import { motion } from 'motion/react';
 import { AnimatedBackground } from '@/components/ui/animated-background';
 import { AuthCta } from './auth-cta';
 import {
+  CalendarIcon,
+  DriveIcon,
   FacebookIcon,
   InstagramIcon,
   LinkedInIcon,
@@ -14,12 +16,15 @@ import { fadeUp, staggerContainer } from '@/lib/motion';
 
 // Small orbiting brand chips around the headline — the "moving images" the hero needs.
 // Purely decorative, so they're hidden on small screens rather than cramping the layout.
+// Drive/Calendar omit `color` — those icons carry their own brand colours already.
 const FLOATING_ICONS = [
-  { Icon: InstagramIcon, className: 'left-[6%] top-[18%] motion-safe:animate-float-slow', color: 'text-pink-400' },
-  { Icon: LinkedInIcon, className: 'right-[8%] top-[22%] motion-safe:animate-float-medium', color: 'text-sky-400' },
-  { Icon: TikTokIcon, className: 'left-[12%] bottom-[12%] motion-safe:animate-float-reverse', color: 'text-white' },
-  { Icon: SnapchatIcon, className: 'right-[14%] bottom-[16%] motion-safe:animate-float-slow', color: 'text-yellow-400' },
-  { Icon: FacebookIcon, className: 'left-[2%] top-[52%] motion-safe:animate-float-medium', color: 'text-blue-400' },
+  { Icon: DriveIcon, className: 'left-[4%] top-[16%] motion-safe:animate-float-slow', color: '' },
+  { Icon: CalendarIcon, className: 'right-[6%] top-[14%] motion-safe:animate-float-reverse', color: '' },
+  { Icon: InstagramIcon, className: 'left-[10%] top-[46%] motion-safe:animate-float-medium', color: 'text-pink-400' },
+  { Icon: LinkedInIcon, className: 'right-[10%] top-[44%] motion-safe:animate-float-slow', color: 'text-sky-400' },
+  { Icon: TikTokIcon, className: 'left-[14%] bottom-[12%] motion-safe:animate-float-reverse', color: 'text-white' },
+  { Icon: SnapchatIcon, className: 'right-[16%] bottom-[16%] motion-safe:animate-float-medium', color: 'text-yellow-400' },
+  { Icon: FacebookIcon, className: 'left-[2%] bottom-[34%] motion-safe:animate-float-slow', color: 'text-blue-400' },
 ];
 
 export function Hero() {
@@ -49,7 +54,7 @@ export function Hero() {
           className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface/80 px-3 py-1 text-xs font-medium text-ink-soft backdrop-blur"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]" />
-          YouTube publishing is live
+          YouTube, Google Drive &amp; Calendar are live
         </motion.span>
 
         <motion.h1

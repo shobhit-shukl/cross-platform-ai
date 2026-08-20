@@ -113,7 +113,13 @@ export class YouTubeProvider implements SocialProvider {
       response_type: 'code',
       access_type: 'offline',
       prompt: 'consent',
-      include_granted_scopes: 'true',
+      // Deliberately omitted: include_granted_scopes=true. With multiple independent
+      // integrations sharing one Google client (YouTube, Drive, ...), that flag makes
+      // Google fold in whatever scopes the user already granted from OTHER
+      // integrations into this request — which Google can then reject outright if the
+      // combined set spans API families it doesn't allow requesting together (this is
+      // exactly what broke connecting Drive after YouTube). Each "Connect" flow should
+      // request only its own scope, as its own independent grant.
       scope: this.scopes.join(' '),
       state,
     });

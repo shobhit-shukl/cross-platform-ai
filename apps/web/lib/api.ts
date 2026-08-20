@@ -1,5 +1,10 @@
 import type {
+  CreateEventInput,
+  CreateEventResult,
   CurrentUser,
+  DriveUploadResult,
+  ListCalendarEventsResult,
+  ListDriveFilesResult,
   ListVideosResult,
   PrivacyStatus,
   PublishingJob,
@@ -145,4 +150,70 @@ export function listYouTubeVideos(opts?: {
   if (opts?.limit) params.set('limit', String(opts.limit));
   const qs = params.toString();
   return apiFetch(`/api/youtube/videos${qs ? `?${qs}` : ''}`);
+}
+
+export function connectGoogleDriveUrl(): string {
+  return `${API_URL}/auth/google-drive`;
+}
+
+/**
+ * Uses raw fetch rather than apiFetch — FormData needs the browser to set its own
+ * multipart boundary in the Content-Type header, which apiFetch's fixed
+ * 'application/json' header would override.
+ */
+export async function uploadFileToDrive(
+  file: File,
+  fileName?: string,
+): Promise<{ file: DriveUploadResult }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (fileName) formData.append('fileName', fileName);
+
+  const res = await fetch(`${API_URL}/api/drive/upload`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new ApiError(body?.message ?? `Upload failed (${res.status})`, res.status, body?.errorCode);
+  }
+
+  return res.json();
+}
+
+export function listDriveFiles(opts?: { pageToken?: string; limit?: number }): Promise<ListDriveFilesResult> {
+  const params = new URLSearchParams();
+  if (opts?.pageToken) params.set('pageToken', opts.pageToken);
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  const qs = params.toString();
+  return apiFetch(`/api/drive/files${qs ? `?${qs}` : ''}`);
+}
+
+export function deleteDriveFile(fileId: string): Promise<{ success: boolean }> {
+  return apiFetch(`/api/drive/files/${encodeURIComponent(fileId)}`, { method: 'DELETE' });
+}
+
+export function connectGoogleCalendarUrl(): string {
+  return `${API_URL}/auth/google-calendar`;
+}
+
+export function listCalendarEvents(opts?: {
+  pageToken?: string;
+  limit?: number;
+}): Promise<ListCalendarEventsResult> {
+  const params = new URLSearchParams();
+  if (opts?.pageToken) params.set('pageToken', opts.pageToken);
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  const qs = params.toString();
+  return apiFetch(`/api/calendar/events${qs ? `?${qs}` : ''}`);
+}
+
+export function createCalendarEvent(input: CreateEventInput): Promise<{ event: CreateEventResult }> {
+  return apiFetch('/api/calendar/events', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function deleteCalendarEvent(eventId: string): Promise<{ success: boolean }> {
+  return apiFetch(`/api/calendar/events/${encodeURIComponent(eventId)}`, { method: 'DELETE' });
 }

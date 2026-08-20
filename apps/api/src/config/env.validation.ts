@@ -24,6 +24,13 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().min(1, 'GOOGLE_CLIENT_ID is required'),
   GOOGLE_CLIENT_SECRET: z.string().min(1, 'GOOGLE_CLIENT_SECRET is required'),
   GOOGLE_REDIRECT_URI: z.string().url(),
+
+  // Same Google Cloud OAuth client as GOOGLE_CLIENT_ID/SECRET above — Drive just needs
+  // its own registered redirect URI, since Google validates that per-flow.
+  GOOGLE_DRIVE_REDIRECT_URI: z.string().url(),
+
+  // Same OAuth client again, its own registered redirect URI for Calendar.
+  GOOGLE_CALENDAR_REDIRECT_URI: z.string().url(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

@@ -3,6 +3,8 @@
 import { motion } from 'motion/react';
 import type { ComponentType, SVGProps } from 'react';
 import {
+  CalendarIcon,
+  DriveIcon,
   FacebookIcon,
   InstagramIcon,
   LinkedInIcon,
@@ -16,7 +18,8 @@ import { fadeUp, hoverLift, revealOnScroll, staggerContainer } from '@/lib/motio
 interface PlatformEntry {
   name: string;
   status: 'live' | 'soon';
-  color: string;
+  /** Applied via currentColor — omitted for icons that ship their own brand colours (Drive, Calendar). */
+  color?: string;
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
@@ -26,6 +29,8 @@ interface PlatformEntry {
  */
 const PLATFORMS: PlatformEntry[] = [
   { name: 'YouTube', status: 'live', color: 'text-red-500', Icon: YouTubeIcon },
+  { name: 'Google Drive', status: 'live', Icon: DriveIcon },
+  { name: 'Google Calendar', status: 'live', Icon: CalendarIcon },
   { name: 'Instagram', status: 'soon', color: 'text-pink-400', Icon: InstagramIcon },
   { name: 'LinkedIn', status: 'soon', color: 'text-sky-400', Icon: LinkedInIcon },
   { name: 'TikTok', status: 'soon', color: 'text-white', Icon: TikTokIcon },
@@ -39,10 +44,10 @@ export function PlatformGrid() {
     <section id="platforms" className="scroll-mt-20 py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <motion.div {...revealOnScroll} variants={fadeUp} className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-ink">One place for every platform</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-ink">Connect everything your workflow needs</h2>
           <p className="mt-4 text-ink-soft">
-            Connect each account once through its official OAuth flow. YouTube is live
-            today — the rest are on the way.
+            Each account connects once through its official OAuth flow. YouTube, Google
+            Drive and Google Calendar are live today — the rest are on the way.
           </p>
         </motion.div>
 
@@ -64,7 +69,7 @@ export function PlatformGrid() {
                     : 'border-border opacity-50'
                 }`}
               >
-                <Icon className={`h-9 w-9 ${color}`} />
+                <Icon className={`h-9 w-9 ${color ?? ''}`} />
                 <span className="text-sm font-semibold text-ink">{name}</span>
                 {isLive ? (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">

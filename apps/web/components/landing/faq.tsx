@@ -7,7 +7,7 @@ import { fadeUp, revealOnScroll, smooth } from '@/lib/motion';
 const FAQS = [
   {
     q: 'Which platforms work right now?',
-    a: 'YouTube is fully live — you can connect a channel and publish videos to it today. Instagram, LinkedIn, TikTok, Snapchat, X and Facebook are in progress and marked "Coming soon" above. We would rather show you honestly what is ready than promise integrations that are not.',
+    a: 'YouTube, Google Drive and Google Calendar are fully live today — connect a YouTube channel and publish videos to it, store files in Drive, or create and manage Calendar events. Instagram, LinkedIn, TikTok, Snapchat, X and Facebook are in progress and marked "Coming soon" above. We would rather show you honestly what is ready than promise integrations that are not.',
   },
   {
     q: 'Do you need my YouTube or Instagram password?',
@@ -23,7 +23,7 @@ const FAQS = [
   },
   {
     q: 'What permissions are you asking for?',
-    a: 'The minimum needed for what you asked us to do. For YouTube that is read access to identify your channel, plus upload access to publish videos. We request nothing beyond that.',
+    a: 'Only what each feature needs. YouTube requests read access to identify your channel plus upload access to publish videos. Drive requests access only to files this app creates — never your whole Drive. Calendar requests access to manage events on your calendar.',
   },
   {
     q: 'Can I disconnect an account later?',

@@ -11,6 +11,8 @@ enum Platform {
   YOUTUBE
   INSTAGRAM
   FACEBOOK
+  GOOGLE_DRIVE
+  GOOGLE_CALENDAR
 }
 
 enum PublishStatus {

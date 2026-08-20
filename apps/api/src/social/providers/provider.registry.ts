@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Platform } from '@prisma/client';
 import { SocialProvider } from './social-provider.interface';
 import { YouTubeProvider } from './youtube/youtube.provider';
+import { GoogleDriveProvider } from './google-drive/google-drive.provider';
+import { GoogleCalendarProvider } from './google-calendar/google-calendar.provider';
 
 /**
  * Central lookup from Platform -> SocialProvider implementation. To add Instagram or
@@ -11,9 +13,15 @@ import { YouTubeProvider } from './youtube/youtube.provider';
 export class ProviderRegistry {
   private readonly providers: Map<Platform, SocialProvider>;
 
-  constructor(private readonly youtubeProvider: YouTubeProvider) {
+  constructor(
+    private readonly youtubeProvider: YouTubeProvider,
+    private readonly googleDriveProvider: GoogleDriveProvider,
+    private readonly googleCalendarProvider: GoogleCalendarProvider,
+  ) {
     this.providers = new Map<Platform, SocialProvider>([
       [Platform.YOUTUBE, this.youtubeProvider],
+      [Platform.GOOGLE_DRIVE, this.googleDriveProvider],
+      [Platform.GOOGLE_CALENDAR, this.googleCalendarProvider],
     ]);
   }
 

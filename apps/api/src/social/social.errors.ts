@@ -45,3 +45,11 @@ export class VideoUploadError extends Error {
     this.name = 'VideoUploadError';
   }
 }
+
+/** Thrown when a file upload to a storage provider (Google Drive, ...) fails. */
+export class FileUploadError extends Error {
+  constructor(message = 'Failed to upload the file') {
+    super(message);
+    this.name = 'FileUploadError';
+  }
+}

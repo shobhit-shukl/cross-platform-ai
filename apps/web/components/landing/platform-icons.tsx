@@ -66,3 +66,30 @@ export function FacebookIcon(props: IconProps) {
     </svg>
   );
 }
+
+// Drive and Calendar use their real multi-colour brand marks rather than a single
+// currentColor fill, matching the icons already used in the dashboard's connected
+// accounts list — these are genuinely multi-coloured logos, not single-tone glyphs.
+
+export function DriveIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden {...props}>
+      <path d="M8.05 3.5 1.5 15l3.3 5.7 6.55-11.5-3.3-5.7Z" fill="#00AC47" />
+      <path d="M15.95 3.5H8.05l3.3 5.7h7.9l-3.3-5.7Z" fill="#EA4335" />
+      <path d="M4.8 20.7h14.4l3.3-5.7H8.1l-3.3 5.7Z" fill="#4285F4" />
+      <path d="M11.85 9.2h7.9l3.3 5.7h-7.9l-3.3-5.7Z" fill="#FFBA00" />
+    </svg>
+  );
+}
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden {...props}>
+      <rect x="3" y="4.5" width="18" height="16" rx="2" fill="#fff" stroke="#DADCE0" />
+      <rect x="3" y="4.5" width="18" height="4" rx="2" fill="#1A73E8" />
+      <text x="12" y="17.5" textAnchor="middle" fontSize="9" fontWeight="600" fill="#1A73E8" fontFamily="sans-serif">
+        31
+      </text>
+    </svg>
+  );
+}

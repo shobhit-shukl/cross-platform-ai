@@ -1,4 +1,6 @@
 import {
+  CalendarIcon,
+  DriveIcon,
   FacebookIcon,
   InstagramIcon,
   LinkedInIcon,
@@ -10,6 +12,8 @@ import {
 
 const LOGOS = [
   { Icon: YouTubeIcon, name: 'YouTube' },
+  { Icon: DriveIcon, name: 'Google Drive' },
+  { Icon: CalendarIcon, name: 'Google Calendar' },
   { Icon: InstagramIcon, name: 'Instagram' },
   { Icon: LinkedInIcon, name: 'LinkedIn' },
   { Icon: TikTokIcon, name: 'TikTok' },

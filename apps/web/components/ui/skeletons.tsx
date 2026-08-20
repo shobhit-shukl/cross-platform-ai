@@ -46,6 +46,50 @@ export function VideoGridSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
+/** Mirrors <CalendarEventList>'s row layout: time chip, title/description, action buttons. */
+export function CalendarEventsSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-border bg-surface/60">
+      <div className="divide-y divide-border">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between gap-4 px-6 py-4">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <Skeleton className="h-12 w-12 shrink-0 rounded-md" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
+            <Skeleton className="h-8 w-20 rounded-md" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Mirrors <DriveFileList>'s row layout: icon, name/size/date, action buttons. */
+export function DriveFilesSkeleton({ count = 5 }: { count?: number }) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-border bg-surface/60">
+      <div className="divide-y divide-border">
+        {Array.from({ length: count }).map((_, i) => (
+          <div key={i} className="flex items-center justify-between gap-4 px-6 py-4">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <Skeleton className="h-9 w-9 shrink-0 rounded-md" />
+              <div className="min-w-0 flex-1 space-y-2">
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-3 w-1/4" />
+              </div>
+            </div>
+            <Skeleton className="h-8 w-20 rounded-md" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** Mirrors <PublishingJobsList>'s row layout. */
 export function PublishingJobsSkeleton({ count = 3 }: { count?: number }) {
   return (

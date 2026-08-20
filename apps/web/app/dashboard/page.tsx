@@ -11,16 +11,25 @@ import { getCurrentUser, listSocialAccounts, logout } from '@/lib/api';
 import { fadeUp } from '@/lib/motion';
 import type { CurrentUser, SocialAccount } from '@/lib/types';
 
-const ERROR_MESSAGES: Record<string, string> = {
-  access_denied: 'You declined the Google permission request, so the YouTube account was not connected.',
-  invalid_callback: "Google's response was missing required information. Please try again.",
-  invalid_state: 'This connection request expired or could not be verified. Please try again.',
-  exchange_failed: 'We could not complete the connection with Google. Please try again.',
-  insufficient_scope: 'YouTube access was not granted. Please accept all requested permissions to connect.',
-  no_channel: 'That Google account has no YouTube channel to connect.',
-  fetch_channel_failed: 'We connected to Google but could not retrieve your channel. Please try again.',
-  unknown_error: 'Something went wrong while connecting YouTube. Please try again.',
+const PLATFORM_LABELS: Record<string, string> = {
+  youtube: 'YouTube',
+  google_drive: 'Google Drive',
+  google_calendar: 'Google Calendar',
 };
+
+function connectionErrorMessage(reason: string, platformLabel: string): string {
+  const messages: Record<string, string> = {
+    access_denied: `You declined the Google permission request, so ${platformLabel} was not connected.`,
+    invalid_callback: "Google's response was missing required information. Please try again.",
+    invalid_state: 'This connection request expired or could not be verified. Please try again.',
+    exchange_failed: `We could not complete the connection with Google. Please try again.`,
+    insufficient_scope: `Required permissions were not granted. Please accept all requested permissions to connect ${platformLabel}.`,
+    no_channel: 'That Google account has no YouTube channel to connect.',
+    fetch_channel_failed: 'We connected to Google but could not retrieve your channel. Please try again.',
+    unknown_error: `Something went wrong while connecting ${platformLabel}. Please try again.`,
+  };
+  return messages[reason] ?? messages.unknown_error;
+}
 
 export default function DashboardPage() {
   return (
@@ -68,11 +77,14 @@ function DashboardContent() {
     const connection = searchParams.get('connection');
     if (!connection) return;
 
+    const platformParam = searchParams.get('platform') ?? 'youtube';
+    const platformLabel = PLATFORM_LABELS[platformParam] ?? 'the account';
+
     if (connection === 'success') {
-      setBanner({ type: 'success', text: 'YouTube account connected successfully.' });
+      setBanner({ type: 'success', text: `${platformLabel} connected successfully.` });
     } else if (connection === 'error') {
       const reason = searchParams.get('reason') ?? 'unknown_error';
-      setBanner({ type: 'error', text: ERROR_MESSAGES[reason] ?? ERROR_MESSAGES.unknown_error });
+      setBanner({ type: 'error', text: connectionErrorMessage(reason, platformLabel) });
     }
 
     // Strip the query params so refreshing the page doesn't re-show the banner.
@@ -105,6 +117,12 @@ function DashboardContent() {
         <div className="flex items-center gap-4">
           <Link href="/videos" className="text-sm font-medium text-ink-soft transition hover:text-ink">
             Your Videos
+          </Link>
+          <Link href="/drive" className="text-sm font-medium text-ink-soft transition hover:text-ink">
+            Google Drive
+          </Link>
+          <Link href="/calendar" className="text-sm font-medium text-ink-soft transition hover:text-ink">
+            Google Calendar
           </Link>
           <Link
             href="/create"
