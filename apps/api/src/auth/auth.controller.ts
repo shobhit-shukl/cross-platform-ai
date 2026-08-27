@@ -27,10 +27,18 @@ export class AuthController {
   ) {}
 
   private setSessionCookie(res: Response, token: string) {
+    // In production the frontend (Vercel) and API (Render) are on different sites, so
+    // the browser treats every `fetch(..., { credentials: 'include' })` from the app as
+    // a cross-site subresource request — SameSite=Lax would silently refuse to send
+    // this cookie and every authenticated call would 401. SameSite=None fixes that, and
+    // browsers require Secure alongside it (also correct: production is HTTPS-only).
+    // Locally both sides are localhost, so Lax still applies there — it's stricter, and
+    // avoids needing HTTPS in dev.
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
     res.cookie(AUTH_COOKIE_NAME, token, {
       httpOnly: true,
-      secure: this.configService.get('NODE_ENV') === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: SESSION_MAX_AGE_MS,
       path: '/',
     });
@@ -56,7 +64,16 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+    // clearCookie only works if these attributes match the ones the cookie was set
+    // with — otherwise the browser treats it as a different cookie and leaves the real
+    // one in place, silently keeping the user signed in.
+    const isProduction = this.configService.get('NODE_ENV') === 'production';
+    res.clearCookie(AUTH_COOKIE_NAME, {
+      path: '/',
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+    });
     return { success: true };
   }
 
