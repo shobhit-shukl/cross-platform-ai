@@ -4,6 +4,7 @@ import { SocialProvider } from './social-provider.interface';
 import { YouTubeProvider } from './youtube/youtube.provider';
 import { GoogleDriveProvider } from './google-drive/google-drive.provider';
 import { GoogleCalendarProvider } from './google-calendar/google-calendar.provider';
+import { LinkedInProvider } from './linkedin/linkedin.provider';
 
 /**
  * Central lookup from Platform -> SocialProvider implementation. To add Instagram or
@@ -17,11 +18,13 @@ export class ProviderRegistry {
     private readonly youtubeProvider: YouTubeProvider,
     private readonly googleDriveProvider: GoogleDriveProvider,
     private readonly googleCalendarProvider: GoogleCalendarProvider,
+    private readonly linkedInProvider: LinkedInProvider,
   ) {
     this.providers = new Map<Platform, SocialProvider>([
       [Platform.YOUTUBE, this.youtubeProvider],
       [Platform.GOOGLE_DRIVE, this.googleDriveProvider],
       [Platform.GOOGLE_CALENDAR, this.googleCalendarProvider],
+      [Platform.LINKEDIN, this.linkedInProvider],
     ]);
   }
 

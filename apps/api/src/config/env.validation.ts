@@ -31,6 +31,16 @@ const EnvSchema = z.object({
 
   // Same OAuth client again, its own registered redirect URI for Calendar.
   GOOGLE_CALENDAR_REDIRECT_URI: z.string().url(),
+
+  // A separate OAuth vendor entirely — LinkedIn, not Google. Its own app registration,
+  // its own client id/secret. Deliberately OPTIONAL (unlike the required GOOGLE_*
+  // vars): the app must still boot — and YouTube/Drive/Calendar must still work —
+  // before a LinkedIn Developer app exists. LinkedInProvider checks these itself at
+  // request time and fails with a clear, specific message if they're missing, instead
+  // of the whole API refusing to start over one unconfigured integration.
+  LINKEDIN_CLIENT_ID: z.string().optional(),
+  LINKEDIN_CLIENT_SECRET: z.string().optional(),
+  LINKEDIN_REDIRECT_URI: z.string().url().optional(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

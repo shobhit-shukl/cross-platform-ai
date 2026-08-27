@@ -6,6 +6,7 @@ import {
   ApiError,
   connectGoogleCalendarUrl,
   connectGoogleDriveUrl,
+  connectLinkedInUrl,
   connectYouTubeUrl,
   disconnectSocialAccount,
 } from '@/lib/api';
@@ -20,6 +21,7 @@ export function ConnectedAccounts({ initialAccounts }: { initialAccounts: Social
   const youtube = accounts.find((a) => a.platform === 'YOUTUBE');
   const googleDrive = accounts.find((a) => a.platform === 'GOOGLE_DRIVE');
   const googleCalendar = accounts.find((a) => a.platform === 'GOOGLE_CALENDAR');
+  const linkedIn = accounts.find((a) => a.platform === 'LINKEDIN');
 
   async function handleDisconnect(account: SocialAccount) {
     setError(null);
@@ -247,6 +249,70 @@ export function ConnectedAccounts({ initialAccounts }: { initialAccounts: Social
           )}
         </motion.li>
 
+        <motion.li variants={fadeUp} className="flex items-center justify-between gap-4 px-6 py-5">
+          <div className="flex items-center gap-4">
+            <LinkedInIcon />
+            <div>
+              <p className="font-medium text-ink">LinkedIn</p>
+              <AnimatePresence mode="wait">
+                {linkedIn ? (
+                  <motion.div
+                    key={linkedIn.needsReauth ? 'reauth' : 'connected'}
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-0.5 text-sm text-ink-soft"
+                  >
+                    {linkedIn.needsReauth ? (
+                      <span className="text-amber-400">Reconnect required — permissions expired or revoked</span>
+                    ) : (
+                      <>
+                        <span className="font-medium text-emerald-400">Connected ✓</span>
+                        {linkedIn.displayName && <span className="ml-2">{linkedIn.displayName}</span>}
+                      </>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.p
+                    key="not-connected"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-0.5 text-sm text-ink-soft"
+                  >
+                    Not connected
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {linkedIn ? (
+            linkedIn.needsReauth ? (
+              <a
+                href={connectLinkedInUrl()}
+                className="rounded-md bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-[0_0_20px_-6px_rgba(139,92,246,0.7)] transition hover:brightness-110 active:scale-95"
+              >
+                Reconnect
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleDisconnect(linkedIn)}
+                disabled={disconnectingId === linkedIn.id}
+                className="rounded-md border border-border-strong px-4 py-2 text-sm font-medium text-ink-soft transition hover:border-rose-400/40 hover:text-rose-300 active:scale-95 disabled:opacity-50"
+              >
+                {disconnectingId === linkedIn.id ? 'Disconnecting…' : 'Disconnect'}
+              </button>
+            )
+          ) : (
+            <a
+              href={connectLinkedInUrl()}
+              className="rounded-md bg-[#0A66C2] px-4 py-2 text-sm font-medium text-white shadow-[0_0_20px_-6px_rgba(10,102,194,0.6)] transition hover:brightness-110 active:scale-95"
+            >
+              Connect LinkedIn
+            </a>
+          )}
+        </motion.li>
+
         <PlaceholderRow label="Instagram" />
         <PlaceholderRow label="Facebook" />
       </motion.ul>
@@ -302,6 +368,14 @@ function CalendarIcon() {
       <text x="12" y="17.5" textAnchor="middle" fontSize="9" fontWeight="600" fill="#1A73E8" fontFamily="sans-serif">
         31
       </text>
+    </svg>
+  );
+}
+
+function LinkedInIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-8 w-8 text-[#0A66C2]" fill="currentColor" aria-hidden="true">
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14Zm1.78 13.02H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z" />
     </svg>
   );
 }

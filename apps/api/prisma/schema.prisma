@@ -13,6 +13,7 @@ enum Platform {
   FACEBOOK
   GOOGLE_DRIVE
   GOOGLE_CALENDAR
+  LINKEDIN
 }
 
 enum PublishStatus {
@@ -31,6 +32,7 @@ model User {
 
   socialAccounts SocialAccount[]
   publishingJobs PublishingJob[]
+  linkedInPosts  LinkedInPost[]
 
   @@map("users")
 }
@@ -68,6 +70,7 @@ model SocialAccount {
   updatedAt DateTime @updatedAt
 
   publishingJobs PublishingJob[]
+  linkedInPosts  LinkedInPost[]
 
   @@unique([userId, platform, platformUserId], name: "userId_platform_platformUserId")
   @@index([userId])
@@ -110,4 +113,30 @@ model PublishingJob {
 
   @@index([userId, createdAt])
   @@map("publishing_jobs")
+}
+
+/// One row per post created through CrossPost AI. Unlike YouTube/Drive/Calendar, which
+/// all have a live "list mine" API we can query on demand, LinkedIn does not expose a
+/// reliable "list my posts" endpoint at standard access tiers — so "view your posts" is
+/// backed by what we recorded at creation time, not a live LinkedIn query.
+model LinkedInPost {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Nullable + SetNull: disconnecting LinkedIn later must not destroy post history.
+  socialAccountId String?
+  socialAccount   SocialAccount? @relation(fields: [socialAccountId], references: [id], onDelete: SetNull)
+
+  /// LinkedIn's own id for the post, e.g. "urn:li:share:123...".
+  linkedinPostUrn String
+  commentary      String
+  /// "PUBLIC" | "CONNECTIONS" — LinkedIn's own visibility values.
+  visibility      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@map("linkedin_posts")
 }

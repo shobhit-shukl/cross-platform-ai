@@ -3,6 +3,9 @@ import type {
   CreateEventResult,
   CurrentUser,
   DriveUploadResult,
+  LinkedInPost,
+  LinkedInProfile,
+  LinkedInVisibility,
   ListCalendarEventsResult,
   ListDriveFilesResult,
   ListVideosResult,
@@ -216,4 +219,30 @@ export function createCalendarEvent(input: CreateEventInput): Promise<{ event: C
 
 export function deleteCalendarEvent(eventId: string): Promise<{ success: boolean }> {
   return apiFetch(`/api/calendar/events/${encodeURIComponent(eventId)}`, { method: 'DELETE' });
+}
+
+export function connectLinkedInUrl(): string {
+  return `${API_URL}/auth/linkedin`;
+}
+
+export function getLinkedInProfile(): Promise<{ profile: LinkedInProfile }> {
+  return apiFetch('/api/linkedin/profile');
+}
+
+export function listLinkedInPosts(limit = 20): Promise<{ posts: LinkedInPost[] }> {
+  return apiFetch(`/api/linkedin/posts?limit=${limit}`);
+}
+
+export function createLinkedInPost(
+  commentary: string,
+  visibility: LinkedInVisibility,
+): Promise<{ post: LinkedInPost }> {
+  return apiFetch('/api/linkedin/posts', { method: 'POST', body: JSON.stringify({ commentary, visibility }) });
+}
+
+export function editLinkedInPost(id: string, commentary: string): Promise<{ post: LinkedInPost }> {
+  return apiFetch(`/api/linkedin/posts/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ commentary }),
+  });
 }

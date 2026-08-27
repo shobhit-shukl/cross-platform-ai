@@ -1,4 +1,4 @@
-export type Platform = 'YOUTUBE' | 'INSTAGRAM' | 'FACEBOOK' | 'GOOGLE_DRIVE' | 'GOOGLE_CALENDAR';
+export type Platform = 'YOUTUBE' | 'INSTAGRAM' | 'FACEBOOK' | 'GOOGLE_DRIVE' | 'GOOGLE_CALENDAR' | 'LINKEDIN';
 
 export interface SocialAccount {
   id: string;
@@ -99,4 +99,22 @@ export interface CalendarEvent {
 export interface ListCalendarEventsResult {
   items: CalendarEvent[];
   nextPageToken?: string;
+}
+
+export interface LinkedInProfile {
+  memberId: string;
+  name?: string;
+  email?: string;
+  pictureUrl?: string;
+}
+
+export type LinkedInVisibility = 'PUBLIC' | 'CONNECTIONS';
+
+export interface LinkedInPost {
+  id: string;
+  linkedinPostUrn: string;
+  commentary: string;
+  visibility: string;
+  createdAt: string;
+  updatedAt: string;
 }

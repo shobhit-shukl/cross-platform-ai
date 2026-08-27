@@ -6,6 +6,8 @@ import { GoogleDriveOAuthController } from './providers/google-drive/google-driv
 import { GoogleDriveProvider } from './providers/google-drive/google-drive.provider';
 import { GoogleCalendarOAuthController } from './providers/google-calendar/google-calendar-oauth.controller';
 import { GoogleCalendarProvider } from './providers/google-calendar/google-calendar.provider';
+import { LinkedInOAuthController } from './providers/linkedin/linkedin-oauth.controller';
+import { LinkedInProvider } from './providers/linkedin/linkedin.provider';
 import { ProviderRegistry } from './providers/provider.registry';
 import { OAuthStateService } from './oauth-state.service';
 import { SocialAccountsController } from './social-accounts.controller';
@@ -20,6 +22,8 @@ import { DriveUploadController } from './drive-upload.controller';
 import { DriveUploadService } from './drive-upload.service';
 import { CalendarController } from './calendar.controller';
 import { CalendarService } from './calendar.service';
+import { LinkedInController } from './linkedin.controller';
+import { LinkedInService } from './linkedin.service';
 
 @Module({
   imports: [AuthModule],
@@ -33,11 +37,14 @@ import { CalendarService } from './calendar.service';
     DriveUploadController,
     GoogleCalendarOAuthController,
     CalendarController,
+    LinkedInOAuthController,
+    LinkedInController,
   ],
   providers: [
     YouTubeProvider,
     GoogleDriveProvider,
     GoogleCalendarProvider,
+    LinkedInProvider,
     ProviderRegistry,
     OAuthStateService,
     SocialAccountsService,
@@ -46,6 +53,7 @@ import { CalendarService } from './calendar.service';
     VideosService,
     DriveUploadService,
     CalendarService,
+    LinkedInService,
   ],
   exports: [TokenRefreshService],
 })

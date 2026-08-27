@@ -15,17 +15,19 @@ const PLATFORM_LABELS: Record<string, string> = {
   youtube: 'YouTube',
   google_drive: 'Google Drive',
   google_calendar: 'Google Calendar',
+  linkedin: 'LinkedIn',
 };
 
 function connectionErrorMessage(reason: string, platformLabel: string): string {
   const messages: Record<string, string> = {
-    access_denied: `You declined the Google permission request, so ${platformLabel} was not connected.`,
-    invalid_callback: "Google's response was missing required information. Please try again.",
+    access_denied: `You declined the permission request, so ${platformLabel} was not connected.`,
+    invalid_callback: "The provider's response was missing required information. Please try again.",
     invalid_state: 'This connection request expired or could not be verified. Please try again.',
-    exchange_failed: `We could not complete the connection with Google. Please try again.`,
+    exchange_failed: `We could not complete the connection with ${platformLabel}. Please try again.`,
     insufficient_scope: `Required permissions were not granted. Please accept all requested permissions to connect ${platformLabel}.`,
     no_channel: 'That Google account has no YouTube channel to connect.',
     fetch_channel_failed: 'We connected to Google but could not retrieve your channel. Please try again.',
+    not_configured: `${platformLabel} isn't set up yet on this server — an admin needs to add its API credentials first.`,
     unknown_error: `Something went wrong while connecting ${platformLabel}. Please try again.`,
   };
   return messages[reason] ?? messages.unknown_error;
@@ -123,6 +125,9 @@ function DashboardContent() {
           </Link>
           <Link href="/calendar" className="text-sm font-medium text-ink-soft transition hover:text-ink">
             Google Calendar
+          </Link>
+          <Link href="/linkedin" className="text-sm font-medium text-ink-soft transition hover:text-ink">
+            LinkedIn
           </Link>
           <Link
             href="/create"

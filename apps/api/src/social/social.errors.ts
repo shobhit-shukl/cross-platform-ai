@@ -53,3 +53,11 @@ export class FileUploadError extends Error {
     this.name = 'FileUploadError';
   }
 }
+
+/** Thrown when a provider's credentials (client id/secret/redirect URI) aren't set yet. */
+export class IntegrationNotConfiguredError extends Error {
+  constructor(message = 'This integration is not configured yet') {
+    super(message);
+    this.name = 'IntegrationNotConfiguredError';
+  }
+}
