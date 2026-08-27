@@ -14,7 +14,24 @@ import type {
   SocialAccount,
 } from './types';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5000';
+/**
+ * Base URL of the CrossPost AI backend.
+ *
+ * NEXT_PUBLIC_API_URL always wins when it's set — that stays the right way to point a
+ * deployment at a different backend, and it's what you'd change if the API ever moves.
+ * The fallbacks below just mean the repo deploys correctly with no configuration at
+ * all: a production build targets the deployed API, `next dev` targets localhost.
+ *
+ * Next.js inlines both of these at build time, so this resolves to a plain string in
+ * the client bundle — there's no runtime `process` lookup in the browser. Nothing here
+ * is secret; it's the same public URL the browser requests anyway.
+ */
+const DEFAULT_API_URL =
+  process.env.NODE_ENV === 'production'
+    ? 'https://cross-platform-ai.onrender.com'
+    : 'http://localhost:5000';
+
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? DEFAULT_API_URL;
 
 export class ApiError extends Error {
   constructor(
