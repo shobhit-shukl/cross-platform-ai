@@ -6,7 +6,13 @@ const EnvSchema = z.object({
 
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 
+  // The canonical frontend URL. OAuth callbacks redirect here, so it must be a single
+  // URL, not a list.
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+
+  // Optional, comma-separated extra origins allowed through CORS — e.g. Vercel's
+  // per-deployment hostnames. Exact matches only; see main.ts for why no wildcards.
+  ALLOWED_ORIGINS: z.string().optional(),
   API_URL: z.string().url().default('http://localhost:5000'),
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),

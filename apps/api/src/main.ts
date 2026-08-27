@@ -23,8 +23,32 @@ async function bootstrap() {
   app.use(helmet());
   app.use(cookieParser());
 
+  // FRONTEND_URL stays a single canonical URL — OAuth callbacks redirect to it, so it
+  // can't be a list. CORS needs to be slightly broader: Vercel gives every deployment
+  // its own hostname (cross-platform-<hash>-<team>.vercel.app), so opening a specific
+  // build from the Vercel dashboard would otherwise be blocked even though it's the
+  // same app.
+  //
+  // ALLOWED_ORIGINS (optional, comma-separated) covers those extra hostnames. It is a
+  // strict allowlist of exact origins — deliberately NOT a wildcard like
+  // "*.vercel.app", which would let any Vercel-hosted site call this API with the
+  // user's credentials attached, since credentials:true is on.
+  const canonicalOrigin = configService.get<string>('FRONTEND_URL');
+  const extraOrigins = (configService.get<string>('ALLOWED_ORIGINS') ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+  const allowedOrigins = new Set([canonicalOrigin, ...extraOrigins].filter(Boolean) as string[]);
+
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_URL'),
+    origin: (origin, callback) => {
+      // No Origin header: same-origin navigations, curl, server-to-server. Not a
+      // browser cross-site request, so there's nothing for CORS to protect against.
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+      callback(new Error(`Origin ${origin} is not allowed by CORS`));
+    },
     credentials: true,
   });
 
