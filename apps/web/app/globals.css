@@ -3,14 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --canvas: #0a0a12;
-  --surface: #131320;
-  --surface-hover: #1a1a2c;
+  /* Pure black canvas. Surfaces sit just above it rather than being tinted, so the
+     glowing borders and gradients are the only real colour on the page. */
+  --canvas: #000000;
+  --surface: #0a0a0c;
+  --surface-hover: #121215;
   --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --ink: #f4f4f8;
-  --ink-soft: #a1a1b8;
-  --ink-faint: #6b6b80;
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --ink: #fafafa;
+  --ink-soft: #a1a1aa;
+  --ink-faint: #71717a;
 }
 
 html,
@@ -23,11 +25,43 @@ body {
   color: var(--ink);
 }
 
+/* ---------------------------------------------------------------------------
+   Ambient page texture
+   Two stacked layers, both fixed and non-interactive, applied via utility
+   classes rather than to <body> so individual pages can opt out.
+   --------------------------------------------------------------------------- */
+
+/* Faint graph-paper grid. Pure CSS gradients — no image request. */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* Radial mask so the grid dissolves toward the edges instead of ending abruptly. */
+.bg-grid-fade {
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+
+/* Film-grain noise via an inline SVG turbulence filter — a data URI, so still no
+   network request and no binary asset to ship. Kept very low opacity: it should read
+   as texture, never as visible dirt. */
+.bg-noise::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 /* Respect the OS-level motion preference. Ambient/decorative loops (aurora blobs,
-   marquee) are authored with Tailwind's `motion-safe:` variant so they never render at
-   all for these users; this block is the site-wide safety net underneath that, in case
-   an animation or transition slips through unguarded. Framer Motion honours the same
-   preference on its own via `useReducedMotion`. */
+   marquee, spotlight) are authored with Tailwind's `motion-safe:` variant so they never
+   render at all for these users; this block is the site-wide safety net underneath
+   that, in case an animation or transition slips through unguarded. Framer Motion
+   honours the same preference on its own via `useReducedMotion`. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

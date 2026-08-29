@@ -1,10 +1,16 @@
 import type { Config } from 'tailwindcss';
+import defaultTheme from 'tailwindcss/defaultTheme';
 
 const config: Config = {
   darkMode: 'class',
   content: ['./app/**/*.{js,ts,jsx,tsx,mdx}', './components/**/*.{js,ts,jsx,tsx,mdx}'],
   theme: {
     extend: {
+      fontFamily: {
+        // --font-jakarta is injected by next/font in layout.tsx. The default stack is
+        // kept as fallback so text still renders correctly if the font fails to load.
+        sans: ['var(--font-jakarta)', ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         canvas: 'var(--canvas)',
         surface: 'var(--surface)',
@@ -59,6 +65,18 @@ const config: Config = {
           '0%': { opacity: '0', transform: 'translateY(12px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
+        // Halo around the "Live" status dot. Separate from Tailwind's built-in
+        // animate-pulse (which fades the whole element) — this expands a ring outward
+        // so the dot itself stays fully opaque and legible.
+        'pulse-ring': {
+          '0%': { transform: 'scale(1)', opacity: '0.7' },
+          '70%, 100%': { transform: 'scale(2.4)', opacity: '0' },
+        },
+        // Slow hue drift for gradient text, so headings feel alive without moving.
+        'gradient-shift': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
       },
       animation: {
         shimmer: 'shimmer 1.6s infinite',
@@ -67,6 +85,8 @@ const config: Config = {
         'float-reverse': 'float-reverse 30s ease-in-out infinite',
         marquee: 'marquee 28s linear infinite',
         'fade-up': 'fade-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) both',
+        'pulse-ring': 'pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'gradient-shift': 'gradient-shift 6s ease infinite',
       },
     },
   },

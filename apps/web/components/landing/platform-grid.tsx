@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react';
 import type { ComponentType, SVGProps } from 'react';
+import { SpotlightCard } from '@/components/ui/spotlight-card';
 import {
   CalendarIcon,
   DriveIcon,
@@ -13,13 +14,14 @@ import {
   XIcon,
   YouTubeIcon,
 } from './platform-icons';
-import { fadeUp, hoverLift, revealOnScroll, staggerContainer } from '@/lib/motion';
+import { fadeUp, revealOnScroll, staggerContainer, spring } from '@/lib/motion';
 
 interface PlatformEntry {
   name: string;
   status: 'live' | 'soon';
-  /** Applied via currentColor — omitted for icons that ship their own brand colours (Drive, Calendar). */
+  /** Applied via currentColor — omitted for icons that ship their own brand colours. */
   color?: string;
+  glow?: string;
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
@@ -28,9 +30,9 @@ interface PlatformEntry {
  * 'live' when its integration ships is a one-word edit.
  */
 const PLATFORMS: PlatformEntry[] = [
-  { name: 'YouTube', status: 'live', color: 'text-red-500', Icon: YouTubeIcon },
-  { name: 'Google Drive', status: 'live', Icon: DriveIcon },
-  { name: 'Google Calendar', status: 'live', Icon: CalendarIcon },
+  { name: 'YouTube', status: 'live', color: 'text-red-500', glow: 'rgba(239,68,68,0.16)', Icon: YouTubeIcon },
+  { name: 'Google Drive', status: 'live', glow: 'rgba(52,211,153,0.16)', Icon: DriveIcon },
+  { name: 'Google Calendar', status: 'live', glow: 'rgba(59,130,246,0.16)', Icon: CalendarIcon },
   { name: 'Instagram', status: 'soon', color: 'text-pink-400', Icon: InstagramIcon },
   { name: 'LinkedIn', status: 'soon', color: 'text-sky-400', Icon: LinkedInIcon },
   { name: 'TikTok', status: 'soon', color: 'text-white', Icon: TikTokIcon },
@@ -39,12 +41,32 @@ const PLATFORMS: PlatformEntry[] = [
   { name: 'Facebook', status: 'soon', color: 'text-blue-400', Icon: FacebookIcon },
 ];
 
+/** Green dot with an expanding halo. The dot stays fully opaque so it reads as a status
+ *  indicator, while a separate ring animates outward — clearer than fading the whole thing. */
+function LiveBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
+      <span className="relative flex h-1.5 w-1.5">
+        <span className="motion-safe:animate-pulse-ring absolute inline-flex h-full w-full rounded-full bg-emerald-400" />
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_1px_rgba(52,211,153,0.8)]" />
+      </span>
+      Live
+    </span>
+  );
+}
+
 export function PlatformGrid() {
   return (
-    <section id="platforms" className="scroll-mt-20 py-20">
+    <section id="platforms" className="relative scroll-mt-20 py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <motion.div {...revealOnScroll} variants={fadeUp} className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-ink">Connect everything your workflow needs</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+            Connect{' '}
+            <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
+              everything
+            </span>{' '}
+            your workflow needs
+          </h2>
           <p className="mt-4 text-ink-soft">
             Each account connects once through its official OAuth flow. YouTube, Google
             Drive and Google Calendar are live today — the rest are on the way.
@@ -54,33 +76,30 @@ export function PlatformGrid() {
         <motion.ul
           {...revealOnScroll}
           variants={staggerContainer}
-          className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+          className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
         >
-          {PLATFORMS.map(({ name, status, color, Icon }) => {
+          {PLATFORMS.map(({ name, status, color, glow, Icon }) => {
             const isLive = status === 'live';
             return (
               <motion.li
                 key={name}
                 variants={fadeUp}
-                whileHover={isLive ? hoverLift : undefined}
-                className={`flex flex-col items-center gap-3 rounded-xl border bg-surface/60 p-6 text-center backdrop-blur transition-colors ${
-                  isLive
-                    ? 'border-border-strong hover:border-brand-violet/50 hover:shadow-[0_0_30px_-10px_rgba(139,92,246,0.6)]'
-                    : 'border-border opacity-50'
-                }`}
+                whileHover={isLive ? { y: -6, transition: spring } : undefined}
+                className={isLive ? '' : 'opacity-45'}
               >
-                <Icon className={`h-9 w-9 ${color ?? ''}`} />
-                <span className="text-sm font-semibold text-ink">{name}</span>
-                {isLive ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-400">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_1px_rgba(52,211,153,0.7)]" />
-                    Live
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-xs font-medium text-ink-faint">
-                    Coming soon
-                  </span>
-                )}
+                <SpotlightCard glow={glow} className="h-full">
+                  <div className="flex flex-col items-center gap-3 p-6 text-center">
+                    <Icon className={`h-9 w-9 ${color ?? ''}`} />
+                    <span className="text-sm font-semibold text-ink">{name}</span>
+                    {isLive ? (
+                      <LiveBadge />
+                    ) : (
+                      <span className="rounded-full bg-white/5 px-2.5 py-0.5 text-xs font-medium text-ink-faint">
+                        Coming soon
+                      </span>
+                    )}
+                  </div>
+                </SpotlightCard>
               </motion.li>
             );
           })}

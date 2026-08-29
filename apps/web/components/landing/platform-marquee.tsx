@@ -41,16 +41,15 @@ function Track() {
 
 export function PlatformMarquee() {
   return (
-    <div className="relative overflow-hidden border-y border-border bg-surface/40 py-5">
+    <div className="relative overflow-hidden border-y border-white/10 py-6">
+      {/* A real mask rather than two gradient overlays painted in the canvas colour.
+          Overlays only look right when whatever sits behind the marquee is exactly that
+          colour; a mask genuinely fades the content to transparent, so it stays correct
+          over the aurora blobs and grid texture. */}
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-canvas to-transparent"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-canvas to-transparent"
-      />
-      <div className="motion-safe:animate-marquee flex w-max">
+        className="motion-safe:animate-marquee flex w-max [mask-image:linear-gradient(to_right,transparent,#000_12%,#000_88%,transparent)]"
+        style={{ WebkitMaskImage: 'linear-gradient(to right, transparent, #000 12%, #000 88%, transparent)' }}
+      >
         <Track />
         <Track />
       </div>

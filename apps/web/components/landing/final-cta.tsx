@@ -10,15 +10,21 @@ export function FinalCta() {
       <motion.div
         {...revealOnScroll}
         variants={staggerContainer}
-        className="relative mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border-strong bg-surface/70 px-6 py-16 text-center backdrop-blur"
+        className="bg-noise relative mx-auto max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-surface/70 px-6 py-20 text-center backdrop-blur"
       >
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-brand-gradient-soft" />
+        <div aria-hidden className="bg-grid-pattern pointer-events-none absolute inset-0 opacity-40" />
+        {/* Glow bleeding in from the top edge, so the panel reads as lit rather than flat. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-brand-gradient-soft"
+          className="pointer-events-none absolute -top-24 left-1/2 h-48 w-2/3 -translate-x-1/2 rounded-full bg-brand-violet/25 blur-3xl"
         />
 
         <motion.h2 variants={fadeUp} className="relative text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-          Stop uploading the same video five times
+          Stop uploading the same video{' '}
+          <span className="bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">
+            five times
+          </span>
         </motion.h2>
         <motion.p variants={fadeUp} className="relative mx-auto mt-4 max-w-xl text-ink-soft">
           Connect your YouTube channel and publish your first video in a couple of

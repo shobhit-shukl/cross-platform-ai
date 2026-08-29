@@ -29,8 +29,11 @@ const FLOATING_ICONS = [
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden">
+    <section className="bg-noise relative overflow-hidden">
       <AnimatedBackground intensity="high" />
+
+      {/* Graph-paper grid, masked so it dissolves before it reaches the content below. */}
+      <div aria-hidden className="bg-grid-pattern bg-grid-fade pointer-events-none absolute inset-0" />
 
       <div aria-hidden className="pointer-events-none absolute inset-0 hidden lg:block">
         {FLOATING_ICONS.map(({ Icon, className, color }, i) => (
@@ -53,16 +56,21 @@ export function Hero() {
           variants={fadeUp}
           className="inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface/80 px-3 py-1 text-xs font-medium text-ink-soft backdrop-blur"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]" />
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="motion-safe:animate-pulse-ring absolute inline-flex h-full w-full rounded-full bg-emerald-400" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_2px_rgba(52,211,153,0.6)]" />
+          </span>
           YouTube, Google Drive &amp; Calendar are live
         </motion.span>
 
         <motion.h1
           variants={fadeUp}
-          className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
+          className="mt-6 text-5xl font-extrabold tracking-tighter sm:text-6xl md:text-7xl"
         >
           Publish once.{' '}
-          <span className="bg-brand-gradient bg-clip-text text-transparent">
+          {/* bg-[length:200%_auto] gives the gradient room to travel, so the animation
+              shifts hue across the text instead of sitting still. */}
+          <span className="motion-safe:animate-gradient-shift bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-[length:200%_auto] bg-clip-text text-transparent">
             Everywhere your audience is.
           </span>
         </motion.h1>
