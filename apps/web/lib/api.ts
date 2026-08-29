@@ -3,6 +3,7 @@ import type {
   CreateEventResult,
   CurrentUser,
   DriveUploadResult,
+  GeneratedVideoMetadata,
   LinkedInPost,
   LinkedInProfile,
   LinkedInVisibility,
@@ -262,4 +263,8 @@ export function editLinkedInPost(id: string, commentary: string): Promise<{ post
     method: 'PATCH',
     body: JSON.stringify({ commentary }),
   });
+}
+
+export function generateVideoMetadata(prompt: string): Promise<{ metadata: GeneratedVideoMetadata }> {
+  return apiFetch('/api/ai/video-metadata', { method: 'POST', body: JSON.stringify({ prompt }) });
 }

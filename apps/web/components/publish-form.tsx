@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   ApiError,
   cancelPublishingJob,
+  generateVideoMetadata,
   getPublishingJob,
   publishVideoToYouTube,
 } from '@/lib/api';
@@ -24,6 +25,16 @@ const ERROR_MESSAGES: Record<string, string> = {
   network_error: 'A network error interrupted the upload. Please try again.',
 };
 
+const AI_ERROR_MESSAGES: Record<string, string> = {
+  not_configured: 'AI generation is not set up on this server yet.',
+  quota_exceeded: 'AI rate limit reached. Wait a moment and try again.',
+  model_unavailable: 'The configured AI model is unavailable. An admin needs to update it.',
+  blocked: 'The AI declined that description. Try rephrasing it.',
+  empty_response: 'The AI returned nothing. Please try again.',
+  invalid_response: 'The AI returned an unexpected format. Please try again.',
+  network_error: 'Could not reach the AI service. Please try again.',
+};
+
 type Stage = 'idle' | 'uploading' | 'processing' | 'published' | 'failed';
 
 export function PublishForm({ onJobSettled }: { onJobSettled?: () => void }) {
@@ -33,6 +44,10 @@ export function PublishForm({ onJobSettled }: { onJobSettled?: () => void }) {
   const [description, setDescription] = useState('');
   const [privacyStatus, setPrivacyStatus] = useState<PrivacyStatus>('private');
   const [dragging, setDragging] = useState(false);
+
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const [stage, setStage] = useState<Stage>('idle');
   const [progress, setProgress] = useState(0);
@@ -82,6 +97,32 @@ export function PublishForm({ onJobSettled }: { onJobSettled?: () => void }) {
     setProgress(0);
     setJob(null);
     setValidationError(null);
+    setAiPrompt('');
+    setAiError(null);
+  }
+
+  /**
+   * Fills the title/description fields rather than publishing directly — the generated
+   * text is a starting point the user reviews and edits, not something posted to their
+   * channel unseen.
+   */
+  async function handleGenerate() {
+    if (aiPrompt.trim().length < 3) return;
+    setAiError(null);
+    setGenerating(true);
+    try {
+      const { metadata } = await generateVideoMetadata(aiPrompt.trim());
+      setTitle(metadata.title);
+      setDescription(metadata.description);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setAiError(err.errorCode ? (AI_ERROR_MESSAGES[err.errorCode] ?? err.message) : err.message);
+      } else {
+        setAiError('Failed to generate metadata. Please try again.');
+      }
+    } finally {
+      setGenerating(false);
+    }
   }
 
   function pollJob(jobId: string) {
@@ -227,6 +268,57 @@ export function PublishForm({ onJobSettled }: { onJobSettled?: () => void }) {
 
             <div className="border-t border-border pt-5">
               <p className="mb-3 text-sm font-semibold text-ink">YouTube</p>
+
+              <div className="mb-5 rounded-lg border border-brand-violet/25 bg-brand-gradient-soft p-4">
+                <label htmlFor="ai-prompt" className="block text-sm font-medium text-ink">
+                  ✨ Generate with AI
+                </label>
+                <p className="mt-0.5 text-xs text-ink-faint">
+                  Describe your video in a sentence — AI drafts the title and description for you to edit.
+                </p>
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    id="ai-prompt"
+                    type="text"
+                    value={aiPrompt}
+                    maxLength={1000}
+                    placeholder="e.g. 20s clip of my cat knocking a plant off the windowsill"
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        // This input sits inside the publish <form>; without this an
+                        // Enter press would submit the form instead of generating.
+                        e.preventDefault();
+                        if (!generating && !isBusy && aiPrompt.trim().length >= 3) handleGenerate();
+                      }
+                    }}
+                    disabled={generating || isBusy}
+                    className="flex-1 rounded-md border border-border-strong bg-white/[0.03] px-3 py-2 text-sm text-ink transition focus:border-brand-violet focus:outline-none focus:ring-2 focus:ring-brand-violet/30 disabled:opacity-50"
+                  />
+                  <motion.button
+                    type="button"
+                    onClick={handleGenerate}
+                    disabled={generating || isBusy || aiPrompt.trim().length < 3}
+                    whileTap={{ scale: 0.97 }}
+                    transition={spring}
+                    className="shrink-0 rounded-md bg-brand-gradient px-4 py-2 text-sm font-medium text-white shadow-[0_0_20px_-6px_rgba(139,92,246,0.7)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {generating ? 'Generating…' : 'Generate'}
+                  </motion.button>
+                </div>
+                <AnimatePresence>
+                  {aiError && (
+                    <motion.p
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-2 overflow-hidden text-xs text-rose-400"
+                    >
+                      {aiError}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </div>
 
               <div className="space-y-4">
                 <div>

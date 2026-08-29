@@ -118,3 +118,8 @@ export interface LinkedInPost {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface GeneratedVideoMetadata {
+  title: string;
+  description: string;
+}

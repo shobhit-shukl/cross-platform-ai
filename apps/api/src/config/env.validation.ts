@@ -47,6 +47,18 @@ const EnvSchema = z.object({
   LINKEDIN_CLIENT_ID: z.string().optional(),
   LINKEDIN_CLIENT_SECRET: z.string().optional(),
   LINKEDIN_REDIRECT_URI: z.string().url().optional(),
+
+  // Google Gemini (Generative Language API). Distinct from the GOOGLE_* OAuth
+  // credentials: an API key identifies the project and only works for APIs that accept
+  // one. YouTube/Drive/Calendar reject API keys outright since they act on a specific
+  // user's data. Optional, like the LinkedIn vars — the app boots without it and AI
+  // features are simply unavailable rather than crashing the whole API.
+  GEMINI_API_KEY: z.string().optional(),
+
+  // Overrides the pinned default in GeminiService. Google retires models periodically
+  // (gemini-2.5-flash stopped accepting new keys), so this makes recovery an env change
+  // rather than a redeploy of new code.
+  GEMINI_MODEL: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof EnvSchema>;

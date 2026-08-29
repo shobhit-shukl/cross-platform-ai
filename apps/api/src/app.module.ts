@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { CryptoModule } from './common/crypto/crypto.module';
 import { AuthModule } from './auth/auth.module';
 import { SocialModule } from './social/social.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SocialModule } from './social/social.module';
     CryptoModule,
     AuthModule,
     SocialModule,
+    AiModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
