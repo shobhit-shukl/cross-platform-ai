@@ -197,3 +197,51 @@ the result in a new `publishing_jobs` table.
 - **Unverified app**: while your OAuth app is in Testing status, Google may keep
   uploaded videos private regardless of the `privacyStatus` you send. The success
   screen in `/create` notes this so it doesn't read as a bug.
+
+## 9. Facebook + Instagram setup
+
+Both integrations run on the same Meta app — `META_APP_ID` / `META_APP_SECRET` in
+`apps/api/.env` — but are otherwise independent: separate redirect URIs, separate
+scopes, and (for Instagram) a completely separate OAuth host, since Instagram no
+longer requires a linked Facebook Page to connect.
+
+1. Go to [developers.facebook.com/apps](https://developers.facebook.com/apps) and open
+   (or create) your app.
+2. **Add products** (App Dashboard → Add Product):
+   - **Facebook Login for Business** — powers `/auth/facebook`. Under its Settings, add
+     `http://localhost:5000/auth/facebook/callback` to *Valid OAuth Redirect URIs*.
+   - **Instagram** (the "Instagram API setup with Instagram Login" product) — powers
+     `/auth/instagram`. Add `http://localhost:5000/auth/instagram/callback` under its
+     own OAuth settings.
+3. **Permissions**: `pages_show_list`, `pages_read_engagement`, and `pages_manage_posts`
+   (Facebook) and `instagram_business_basic` / `instagram_business_content_publish`
+   (Instagram) are all Advanced Access permissions — using them with real accounts
+   requires App Review + Business Verification. While the app is in Development mode,
+   only people with a role on the app can connect:
+   - **Facebook**: any account with an Admin/Developer/Tester role, connecting a Page
+     they personally administer.
+   - **Instagram**: the account must (a) be a Professional — Business or Creator —
+     account, not a personal one, and (b) be added under App Roles → Instagram Testers,
+     with the invite accepted from inside Instagram's own Settings → Apps and Websites
+     → Tester Invites.
+4. Copy the app's **App ID** and **App secret** into `META_APP_ID` / `META_APP_SECRET`
+   in `apps/api/.env`.
+
+**Endpoints added:**
+
+- `GET /auth/facebook`, `GET /auth/facebook/callback` — connect flow.
+- `POST /api/facebook/publish` — multipart (`video` file + `caption`), publishes
+  synchronously (the response only arrives once Facebook has accepted the video —
+  there's no job-polling here, unlike YouTube's `/api/youtube/publish`).
+- `GET /api/facebook/videos` — videos already on the connected Page.
+- `GET /auth/instagram`, `GET /auth/instagram/callback` — connect flow.
+- `POST /api/instagram/publish` — multipart (`video` file + `caption`, MP4/MOV only),
+  publishes a Reel via Instagram's resumable-upload Content Publishing flow; this can
+  take a minute or two since Instagram processes the video before the container can be
+  published.
+- `GET /api/instagram/media` — media already on the connected account.
+
+Both `FacebookProvider` and `InstagramProvider` have no refresh-token mechanism wired
+up (Meta's own renewal endpoints don't fit `TokenRefreshService`'s persist-a-refresh-
+token contract — see the comments in each provider) — connections need reconnecting
+roughly every 60 days.

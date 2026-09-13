@@ -48,6 +48,17 @@ const EnvSchema = z.object({
   LINKEDIN_CLIENT_SECRET: z.string().optional(),
   LINKEDIN_REDIRECT_URI: z.string().url().optional(),
 
+  // Meta app (developers.facebook.com/apps) — one app id/secret power both Facebook
+  // and Instagram (Instagram Business accounts are managed via Facebook Login + the
+  // Graph API), each with its own redirect URI, same idea as GOOGLE_DRIVE_REDIRECT_URI
+  // vs GOOGLE_CALENDAR_REDIRECT_URI above. Optional like the LinkedIn vars: the app
+  // boots fine before a Meta Developer app exists, and FacebookProvider/
+  // InstagramProvider each check these themselves at request time.
+  META_APP_ID: z.string().optional(),
+  META_APP_SECRET: z.string().optional(),
+  FACEBOOK_REDIRECT_URI: z.string().url().optional(),
+  INSTAGRAM_REDIRECT_URI: z.string().url().optional(),
+
   // Google Gemini (Generative Language API). Distinct from the GOOGLE_* OAuth
   // credentials: an API key identifies the project and only works for APIs that accept
   // one. YouTube/Drive/Calendar reject API keys outright since they act on a specific

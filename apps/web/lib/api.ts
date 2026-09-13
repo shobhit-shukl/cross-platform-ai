@@ -9,6 +9,8 @@ import type {
   LinkedInVisibility,
   ListCalendarEventsResult,
   ListDriveFilesResult,
+  ListFacebookVideosResult,
+  ListInstagramMediaResult,
   ListVideosResult,
   PrivacyStatus,
   PublishingJob,
@@ -267,4 +269,92 @@ export function editLinkedInPost(id: string, commentary: string): Promise<{ post
 
 export function generateVideoMetadata(prompt: string): Promise<{ metadata: GeneratedVideoMetadata }> {
   return apiFetch('/api/ai/video-metadata', { method: 'POST', body: JSON.stringify({ prompt }) });
+}
+
+export function connectFacebookUrl(): string {
+  return `${API_URL}/auth/facebook`;
+}
+
+export function connectInstagramUrl(): string {
+  return `${API_URL}/auth/instagram`;
+}
+
+export interface PublishVideoWithCaptionInput {
+  video: File;
+  caption: string;
+  onProgress?: (percent: number) => void;
+}
+
+/**
+ * Shared by Facebook/Instagram: unlike publishVideoToYouTube, the backend publishes
+ * synchronously within this one request (no PublishingJob to poll) — the response only
+ * arrives once the platform has finished processing the video, which for Instagram's
+ * container flow can take a while after the upload bytes themselves finish sending.
+ */
+function publishVideoWithCaption(
+  path: string,
+  input: PublishVideoWithCaptionInput,
+): { promise: Promise<{ post: { platformPostId: string } }>; abort: () => void } {
+  const xhr = new XMLHttpRequest();
+
+  const promise = new Promise<{ post: { platformPostId: string } }>((resolve, reject) => {
+    const formData = new FormData();
+    formData.append('video', input.video);
+    formData.append('caption', input.caption);
+
+    xhr.open('POST', `${API_URL}${path}`);
+    xhr.withCredentials = true;
+
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && input.onProgress) {
+        input.onProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+
+    xhr.onload = () => {
+      let body: unknown = null;
+      try {
+        body = JSON.parse(xhr.responseText);
+      } catch {
+        // non-JSON response, handled by the status check below
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(body as { post: { platformPostId: string } });
+      } else {
+        const parsed = body as { message?: string; errorCode?: string } | null;
+        reject(new ApiError(parsed?.message ?? `Upload failed (${xhr.status})`, xhr.status, parsed?.errorCode));
+      }
+    };
+
+    xhr.onerror = () => reject(new ApiError('Network error during upload', 0));
+    xhr.onabort = () => reject(new ApiError('Upload cancelled', 0));
+
+    xhr.send(formData);
+  });
+
+  return { promise, abort: () => xhr.abort() };
+}
+
+export function publishVideoToFacebook(input: PublishVideoWithCaptionInput) {
+  return publishVideoWithCaption('/api/facebook/publish', input);
+}
+
+export function listFacebookVideos(opts?: { after?: string; limit?: number }): Promise<ListFacebookVideosResult> {
+  const params = new URLSearchParams();
+  if (opts?.after) params.set('after', opts.after);
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  const qs = params.toString();
+  return apiFetch(`/api/facebook/videos${qs ? `?${qs}` : ''}`);
+}
+
+export function publishVideoToInstagram(input: PublishVideoWithCaptionInput) {
+  return publishVideoWithCaption('/api/instagram/publish', input);
+}
+
+export function listInstagramMedia(opts?: { after?: string; limit?: number }): Promise<ListInstagramMediaResult> {
+  const params = new URLSearchParams();
+  if (opts?.after) params.set('after', opts.after);
+  if (opts?.limit) params.set('limit', String(opts.limit));
+  const qs = params.toString();
+  return apiFetch(`/api/instagram/media${qs ? `?${qs}` : ''}`);
 }

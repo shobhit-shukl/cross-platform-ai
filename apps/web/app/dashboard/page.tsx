@@ -16,6 +16,8 @@ const PLATFORM_LABELS: Record<string, string> = {
   google_drive: 'Google Drive',
   google_calendar: 'Google Calendar',
   linkedin: 'LinkedIn',
+  facebook: 'Facebook',
+  instagram: 'Instagram',
 };
 
 function connectionErrorMessage(reason: string, platformLabel: string): string {
@@ -27,6 +29,9 @@ function connectionErrorMessage(reason: string, platformLabel: string): string {
     insufficient_scope: `Required permissions were not granted. Please accept all requested permissions to connect ${platformLabel}.`,
     no_channel: 'That Google account has no YouTube channel to connect.',
     fetch_channel_failed: 'We connected to Google but could not retrieve your channel. Please try again.',
+    no_page: 'That Facebook account has no Page you administer. Create a Facebook Page first, then reconnect.',
+    no_instagram_account:
+      'That account has no professional (Business/Creator) Instagram account to connect. Switch to a professional account in the Instagram app, then reconnect.',
     not_configured: `${platformLabel} isn't set up yet on this server — an admin needs to add its API credentials first.`,
     unknown_error: `Something went wrong while connecting ${platformLabel}. Please try again.`,
   };

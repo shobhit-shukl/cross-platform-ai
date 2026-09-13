@@ -5,8 +5,10 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import {
   ApiError,
+  connectFacebookUrl,
   connectGoogleCalendarUrl,
   connectGoogleDriveUrl,
+  connectInstagramUrl,
   connectLinkedInUrl,
   connectYouTubeUrl,
   disconnectSocialAccount,
@@ -89,6 +91,32 @@ const PLATFORMS: PlatformConfig[] = [
       { label: 'Profile & posts', href: '/linkedin' },
     ],
   },
+  {
+    id: 'FACEBOOK',
+    label: 'Facebook',
+    Icon: FacebookIcon,
+    connectUrl: connectFacebookUrl,
+    connectClass: 'bg-[#1877F2] hover:brightness-110 shadow-[0_0_20px_-6px_rgba(24,119,242,0.6)]',
+    glow: 'rgba(24,119,242,0.10)',
+    actions: [
+      { label: 'Upload a video', href: '/facebook', primary: true },
+      { label: 'Page videos', href: '/facebook' },
+    ],
+    detail: (a) => <>Page ID: {a.platformUserId}</>,
+  },
+  {
+    id: 'INSTAGRAM',
+    label: 'Instagram',
+    Icon: InstagramIcon,
+    connectUrl: connectInstagramUrl,
+    connectClass:
+      'bg-gradient-to-tr from-[#FEDA75] via-[#D62976] to-[#4F5BD5] hover:brightness-110 shadow-[0_0_20px_-6px_rgba(214,41,118,0.6)]',
+    glow: 'rgba(214,41,118,0.10)',
+    actions: [
+      { label: 'Upload a reel', href: '/instagram', primary: true },
+      { label: 'Your media', href: '/instagram' },
+    ],
+  },
 ];
 
 export function ConnectedAccounts({ initialAccounts }: { initialAccounts: SocialAccount[] }) {
@@ -164,9 +192,6 @@ export function ConnectedAccounts({ initialAccounts }: { initialAccounts: Social
             publishedCount={platform.id === 'YOUTUBE' ? publishedCount : null}
           />
         ))}
-
-        <PlaceholderRow label="Instagram" />
-        <PlaceholderRow label="Facebook" />
       </motion.ul>
     </section>
   );
@@ -364,27 +389,6 @@ function PlatformRow({
   );
 }
 
-function PlaceholderRow({ label }: { label: string }) {
-  return (
-    <motion.li variants={fadeUp} className="flex items-center justify-between gap-4 px-6 py-5 opacity-40">
-      <div className="flex items-center gap-4">
-        <div className="h-8 w-8 rounded-full bg-white/10" />
-        <div>
-          <p className="font-medium text-ink">{label}</p>
-          <p className="mt-0.5 text-sm text-ink-soft">Coming soon</p>
-        </div>
-      </div>
-      <button
-        type="button"
-        disabled
-        className="cursor-not-allowed rounded-md border border-white/10 px-4 py-2 text-sm font-medium text-ink-faint"
-      >
-        Connect {label}
-      </button>
-    </motion.li>
-  );
-}
-
 function YouTubeIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-8 w-8 shrink-0 text-red-500" fill="currentColor" aria-hidden="true">
@@ -420,6 +424,33 @@ function LinkedInIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-8 w-8 shrink-0 text-[#0A66C2]" fill="currentColor" aria-hidden="true">
       <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05a3.74 3.74 0 0 1 3.37-1.85c3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14Zm1.78 13.02H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z" />
+    </svg>
+  );
+}
+
+function FacebookIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-8 w-8 shrink-0 text-[#1877F2]" fill="currentColor" aria-hidden="true">
+      <path d="M24 12.07C24 5.68 18.63.4 12 .4S0 5.68 0 12.07c0 5.77 4.39 10.56 10.13 11.44v-8.09H7.08v-3.35h3.05V9.41c0-2.99 1.79-4.64 4.53-4.64 1.31 0 2.68.23 2.68.23v2.91h-1.51c-1.49 0-1.95.92-1.95 1.86v2.23h3.32l-.53 3.35h-2.79v8.09C19.61 22.63 24 17.84 24 12.07Z" />
+    </svg>
+  );
+}
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-8 w-8 shrink-0" aria-hidden="true">
+      <defs>
+        <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#FEDA75" />
+          <stop offset="35%" stopColor="#D62976" />
+          <stop offset="70%" stopColor="#962FBF" />
+          <stop offset="100%" stopColor="#4F5BD5" />
+        </linearGradient>
+      </defs>
+      <rect x="1" y="1" width="22" height="22" rx="6" fill="url(#ig-gradient)" />
+      <rect x="6.2" y="6.2" width="11.6" height="11.6" rx="3.8" fill="none" stroke="#fff" strokeWidth="1.7" />
+      <circle cx="12" cy="12" r="3.3" fill="none" stroke="#fff" strokeWidth="1.7" />
+      <circle cx="17.15" cy="6.85" r="1.05" fill="#fff" />
     </svg>
   );
 }

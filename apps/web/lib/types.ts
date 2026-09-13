@@ -123,3 +123,32 @@ export interface GeneratedVideoMetadata {
   title: string;
   description: string;
 }
+
+export interface FacebookVideo {
+  id: string;
+  description?: string;
+  permalinkUrl?: string;
+  pictureUrl?: string;
+  createdTime?: string;
+  lengthSeconds?: number;
+}
+
+export interface ListFacebookVideosResult {
+  items: FacebookVideo[];
+  nextCursor?: string;
+}
+
+export interface InstagramMedia {
+  id: string;
+  caption?: string;
+  mediaType?: string;
+  mediaUrl?: string;
+  thumbnailUrl?: string;
+  permalink?: string;
+  timestamp?: string;
+}
+
+export interface ListInstagramMediaResult {
+  items: InstagramMedia[];
+  nextCursor?: string;
+}

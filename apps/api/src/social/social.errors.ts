@@ -61,3 +61,19 @@ export class IntegrationNotConfiguredError extends Error {
     this.name = 'IntegrationNotConfiguredError';
   }
 }
+
+/** Thrown when the Facebook user has no Page (or no Page they administer) to connect. */
+export class NoFacebookPageError extends Error {
+  constructor(message = 'No Facebook Page found on this account') {
+    super(message);
+    this.name = 'NoFacebookPageError';
+  }
+}
+
+/** Thrown when none of the user's Facebook Pages have a linked Instagram Business/Creator account. */
+export class NoInstagramAccountError extends Error {
+  constructor(message = 'No Instagram Business account is linked to any of your Facebook Pages') {
+    super(message);
+    this.name = 'NoInstagramAccountError';
+  }
+}
