@@ -8,7 +8,7 @@ import {
   TikTokIcon,
   XIcon,
   YouTubeIcon,
-} from './platform-icons';
+} from '@/components/ui/platform-icons';
 
 const LOGOS = [
   { Icon: YouTubeIcon, name: 'YouTube' },

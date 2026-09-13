@@ -13,7 +13,7 @@ import {
   TikTokIcon,
   XIcon,
   YouTubeIcon,
-} from './platform-icons';
+} from '@/components/ui/platform-icons';
 import { fadeUp, revealOnScroll, staggerContainer, spring } from '@/lib/motion';
 
 interface PlatformEntry {

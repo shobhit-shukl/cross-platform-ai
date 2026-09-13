@@ -11,7 +11,7 @@ import {
   LinkedInIcon,
   SnapchatIcon,
   TikTokIcon,
-} from './platform-icons';
+} from '@/components/ui/platform-icons';
 import { fadeUp, staggerContainer } from '@/lib/motion';
 
 // Small orbiting brand chips around the headline — the "moving images" the hero needs.
