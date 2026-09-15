@@ -9,7 +9,7 @@ import { LinkedInPostList } from '@/components/linkedin-post-list';
 import { LinkedInProfileCard } from '@/components/linkedin-profile-card';
 import { AnimatedBackground } from '@/components/ui/animated-background';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DriveFilesSkeleton } from '@/components/ui/skeletons';
+import { LinkedInPostsSkeleton, ProfileCardSkeleton } from '@/components/ui/skeletons';
 import {
   ApiError,
   getCurrentUser,
@@ -93,7 +93,17 @@ export default function LinkedInPage() {
       <main className="relative mx-auto max-w-3xl px-4 py-10">
         <AnimatedBackground intensity="low" />
         <Skeleton className="mb-8 h-9 w-56" />
-        <DriveFilesSkeleton />
+        <div className="space-y-8">
+          <ProfileCardSkeleton />
+          <div className="rounded-xl border border-border bg-surface/60 p-6">
+            <Skeleton className="h-5 w-24" />
+            <div className="mt-4 space-y-4">
+              <Skeleton className="h-24 w-full rounded-md" />
+              <Skeleton className="h-9 w-32 rounded-md" />
+            </div>
+          </div>
+          <LinkedInPostsSkeleton />
+        </div>
       </main>
     );
   }

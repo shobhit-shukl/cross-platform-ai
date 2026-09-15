@@ -158,9 +158,12 @@ export function InstagramPublishForm({ onPublished }: { onPublished?: () => void
             </AnimatePresence>
 
             <div>
-              <label htmlFor="ig-caption" className="block text-sm font-medium text-ink-soft">
-                Caption
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="ig-caption" className="block text-sm font-medium text-ink-soft">
+                  Caption
+                </label>
+                <span className="text-xs text-ink-faint">{caption.length}/2200</span>
+              </div>
               <textarea
                 id="ig-caption"
                 value={caption}
